@@ -62,6 +62,7 @@ pygame.display.set_caption("NoMoskito!")
 pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_ARROW)
 clock = pygame.time.Clock()
 FPS = 60
+
 # ressources à charger
 # img_spaceship = pygame.image.load("resources/resource_0").convert_alpha()
 img_wait_bar_1 = pygame.image.load("resources/resource_0.png").convert_alpha()
@@ -77,6 +78,10 @@ img_blood_bar = pygame.image.load("resources/resource_9.png").convert_alpha()
 btn_font = pygame.font.SysFont('Comic Sans MS', 30)
 img_pix_blood_bar = pygame.Surface((38, 1))
 img_pix_blood_bar.fill((255, 0, 0))
+img_moskito_1 = pygame.image.load("resources/mosquito_1.png").convert_alpha()
+img_moskito_2 = pygame.image.load("resources/mosquito_2.png").convert_alpha()
+img_moskito_3 = pygame.image.load("resources/mosquito_3.png").convert_alpha()
+img_moskito_4 = pygame.image.load("resources/mosquito_4.png").convert_alpha()
 
 correction_angle = 90
 
@@ -147,6 +152,36 @@ global_var = Var()
 #     def update(self, angle_in):
 #         self.walk_with_degrees(angle_in, 1)
 
+class MoskitoSpawnHandler:
+    def __init__(self):
+        super(MoskitoSpawnHandler, self).__init__()
+        self.time_spent = 0
+        self.time_limit = 500
+        self.moskito_list = []
+
+    def update(self):
+        self.time_spent = self.time_spent + 1
+        if self.time_spent > self.time_limit:
+            self.time_spent = 0
+            self.moskito_list.append(Moskito())
+            self.time_limit = self.time_limit - (self.time_limit / 100)
+        for y in range(0, len(self.moskito_list)):
+            self.moskito_list[y].update()
+
+
+class Moskito(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        alea = random.randint(1, 4)
+        exec("self.image = img_moskito_" + str(alea))
+        self.rect = self.image.get_rect()
+        self.rect.x = random.randint(1, 1280)
+        self.rect.y = random.randint(1, 720)
+
+    def update(self):
+        screen.blit(self.image, self.rect)
+
+
 class WaitBar(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
@@ -156,12 +191,13 @@ class WaitBar(pygame.sprite.Sprite):
         self.rect.x = 470
         self.rect.y = 10
 
-    def update(self):
+    def update(self, time_):
         if global_var.click_delay > 336:
             global_var.click_delay = 338
             global_var.can_click = True
         if not global_var.can_click:
-            global_var.click_delay = global_var.click_delay + (global_var.click_rate / 2)
+            # global_var.click_delay = global_var.click_delay + (global_var.click_rate / 2)
+            global_var.click_delay = global_var.click_delay + (388 / time_ * 0.03)
         for f in range(0, int(global_var.click_delay)):
             screen.blit(self.pix_image, (self.rect.x + 1 + f, self.rect.y + 1))
         screen.blit(self.image, self.rect)
@@ -277,6 +313,7 @@ class Button(pygame.sprite.Sprite):
 # star_list = []
 # for x in range(0, 1000):
 #     star_list.append(Star())
+moskito_spawn_handler = MoskitoSpawnHandler()
 blood_bar = BloodBar()
 swatter = Swatter()
 play_btn = Button()
@@ -294,6 +331,8 @@ settings_btn.type = 'settings'
 continuer = True
 playBtnIsClicked = False
 while continuer:
+    clock.tick_busy_loop(1000)
+    t = clock.get_time()
     mouse = pygame.mouse.get_pos()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -335,10 +374,11 @@ while continuer:
             # When it's space
             pygame.mouse.set_visible(False)
             screen.blit(img_background, (0, 0))
+            moskito_spawn_handler.update()
             swatter.update()
-            wait_bar.update()
+            wait_bar.update(t)
             blood_bar.update()
-            mx, my = pygame.mouse.get_pos()
+            # mx, my = pygame.mouse.get_pos()
 #            dx, dy = mx - player.rect.centerx, my - player.rect.centery
 #            angle = math.degrees(math.atan2(-dy, dx))
             # for x in range(0, 1000):
