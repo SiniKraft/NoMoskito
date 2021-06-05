@@ -26,7 +26,7 @@ import json
 import urllib.request
 
 # nathlib version :
-nl_v = "1.0.001"
+nl_v = "1.0.003"
 
 
 def write_file(to_write, directory, add_backspace=False, overwrite=False):
@@ -56,6 +56,20 @@ def save(setting_list, directory):
     with open(directory, 'wb') as settings_file:
         pickle.dump(setting_list, settings_file)
         settings_file.close()
+
+
+def collision(sprite1, sprite2):
+    """Used to check between 2 pygame sprites rects if they collides
+    Usage : if collision(sprite1.rect, sprite2.rect): [...]"""
+    if sprite2.right < sprite1.left:
+        return False
+    if sprite2.bottom < sprite1.top:
+        return False
+    if sprite2.left > sprite1.right:
+        return False
+    if sprite2.top > sprite1.bottom:
+        return False
+    return True
 
 
 def load(directory):

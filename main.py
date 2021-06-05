@@ -79,10 +79,10 @@ img_blood_bar = pygame.image.load("resources/resource_9.png").convert_alpha()
 btn_font = pygame.font.SysFont('Comic Sans MS', 30)
 img_pix_blood_bar = pygame.Surface((38, 1))
 img_pix_blood_bar.fill((255, 0, 0))
-img_moskito_1 = pygame.image.load("resources/mosquito_1.png").convert_alpha()
-img_moskito_2 = pygame.image.load("resources/mosquito_2.png").convert_alpha()
-img_moskito_3 = pygame.image.load("resources/mosquito_3.png").convert_alpha()
-img_moskito_4 = pygame.image.load("resources/mosquito_4.png").convert_alpha()
+img_moskito_list = [pygame.image.load("resources/mosquito_1.png").convert_alpha(),
+                    pygame.image.load("resources/mosquito_2.png").convert_alpha(),
+                    pygame.image.load("resources/mosquito_3.png").convert_alpha(),
+                    pygame.image.load("resources/mosquito_4.png").convert_alpha()]
 
 correction_angle = 90
 
@@ -173,13 +173,20 @@ class MoskitoSpawnHandler:
 class Moskito(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        alea = random.randint(1, 4)
-        exec("self.image = img_moskito_" + str(alea))
+        if random.randint(0, 10) > 7:
+            _tmp = random.randint(80, 160)
+        else:
+            _tmp = random.randint(140, 160)
+        self.image = pygame.transform.scale(img_moskito_list[random.randint(0, 3)], (_tmp, _tmp))
         self.rect = self.image.get_rect()
         self.rect.x = random.randint(1, 1280)
         self.rect.y = random.randint(1, 720)
         self.ai_task_list = {}
         self.velocity = [0, 0]
+        self.isDestroyed = False
+
+    def destroy(self):
+        self.isDestroyed = True
 
     def shiver(self):  # = trembler
         a = random.randint(1, 4)
@@ -208,31 +215,33 @@ class Moskito(pygame.sprite.Sprite):
         self.velocity = [self.ai_task_list['movement']['x'], self.ai_task_list['movement']['y']]
 
     def limit_checker(self):
-        changer = ''
-        if self.rect.x > 1150:
-            self.rect.x = 1149
-            changer = 'x'
-        if self.rect.x < 0:
-            self.rect.x = 1
-            changer = 'x'
-        if self.rect.y > 580:
-            self.rect.y = 579
-            changer = 'y'
-        if self.rect.y < 0:
-            self.rect.y = 1
-            changer = 'y'
-        if changer == 'x':
-            self.ai_task_list['movement']['x'] = self.ai_task_list['movement']['x'] * -1
-        elif changer == 'y':
-            self.ai_task_list['movement']['y'] = self.ai_task_list['movement']['y'] * -1
-
+        if not self.ai_task_list == {}:  # Security measure to prevent eventual crash !!!
+            changer = ''
+            changer2 = ''
+            if self.rect.x > 1150:
+                self.rect.x = 1149
+                changer = 'x'
+            if self.rect.x < 0:
+                self.rect.x = 1
+                changer = 'x'
+            if self.rect.y > 580:
+                self.rect.y = 579
+                changer2 = 'y'
+            if self.rect.y < 0:
+                self.rect.y = 1
+                changer2 = 'y'
+            if changer == 'x':
+                self.ai_task_list['movement']['x'] = self.ai_task_list['movement']['x'] * -1
+            if changer2 == 'y':
+                self.ai_task_list['movement']['y'] = self.ai_task_list['movement']['y'] * -1
 
     def update(self):  # Moskito AI
-        self.manage_ai_task()
-        self.limit_checker()
-        self.shiver()
-        self.rect.move_ip(*self.velocity)
-        screen.blit(self.image, self.rect)
+        if not self.isDestroyed:
+            self.limit_checker()
+            self.shiver()
+            self.manage_ai_task()
+            self.rect.move_ip(*self.velocity)
+            screen.blit(self.image, self.rect)
 
 
 class WaitBar(pygame.sprite.Sprite):
@@ -285,6 +294,11 @@ class Swatter(pygame.sprite.Sprite):
         self.size_w = 90
         self.size_h = 301
 
+    def destroy_nearby_moskitos(self):
+        for i in range(0, len(moskito_spawn_handler.moskito_list)):
+            if nlib.collision(self.rect, moskito_spawn_handler.moskito_list[i].rect):
+                moskito_spawn_handler.moskito_list[i].destroy()
+
     def update_rect(self):
         self.rect = self.image.get_rect()
 
@@ -308,6 +322,8 @@ class Swatter(pygame.sprite.Sprite):
                 self.size_w = 90
                 self.size_h = 301
         screen.blit(self.image, (x - (self.rect.width / 2), y - (self.rect.height / 2)))
+        if 40 < self.time_ani < 60:
+            self.destroy_nearby_moskitos()
 
     def when_clicked(self):
         if (not self.isClicking) and global_var.can_click:
