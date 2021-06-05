@@ -16,6 +16,7 @@ nlib.log("Launching game version {0} ...".format(version_name), "info")
 # try:
 print("------------------------------Pygame--Details--------------------------")
 import pygame
+
 print("-----------------------------------------------------------------------")
 import sys
 import webbrowser
@@ -177,8 +178,60 @@ class Moskito(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = random.randint(1, 1280)
         self.rect.y = random.randint(1, 720)
+        self.ai_task_list = {}
+        self.velocity = [0, 0]
 
-    def update(self):
+    def shiver(self):  # = trembler
+        a = random.randint(1, 4)
+        if a == 1:
+            self.rect.x = self.rect.x + 1
+        elif a == 2:
+            self.rect.x = self.rect.x - 1
+        elif a == 3:
+            self.rect.y = self.rect.y + 1
+        elif a == 4:
+            self.rect.y = self.rect.y - 1
+
+    def manage_ai_task(self):
+        if self.ai_task_list == {}:
+            _tmp_a = 1
+            if random.randint(0, 1) == 0:
+                _tmp_a = -1
+            _tmp_b = 1
+            if random.randint(0, 1) == 0:
+                _tmp_b = -1
+            self.ai_task_list = {
+                'movement': {'x': random.randint(0, 10) * _tmp_a, 'y': random.randint(0, 10) * _tmp_b,
+                             'time': 0},
+                'down_and_up': {'x': 0, 'y': 0, 'direction': 'up', 'time': 0}
+            }
+        self.velocity = [self.ai_task_list['movement']['x'], self.ai_task_list['movement']['y']]
+
+    def limit_checker(self):
+        changer = ''
+        if self.rect.x > 1150:
+            self.rect.x = 1149
+            changer = 'x'
+        if self.rect.x < 0:
+            self.rect.x = 1
+            changer = 'x'
+        if self.rect.y > 580:
+            self.rect.y = 579
+            changer = 'y'
+        if self.rect.y < 0:
+            self.rect.y = 1
+            changer = 'y'
+        if changer == 'x':
+            self.ai_task_list['movement']['x'] = self.ai_task_list['movement']['x'] * -1
+        elif changer == 'y':
+            self.ai_task_list['movement']['y'] = self.ai_task_list['movement']['y'] * -1
+
+
+    def update(self):  # Moskito AI
+        self.manage_ai_task()
+        self.limit_checker()
+        self.shiver()
+        self.rect.move_ip(*self.velocity)
         screen.blit(self.image, self.rect)
 
 
@@ -325,6 +378,11 @@ settings_btn.minX = 512
 settings_btn.minY = 436
 settings_btn.type = 'settings'
 
+
+def calculate_distance(coord1, coord2):
+    return math.sqrt((coord2[0] - coord1[0]) ** 2 + (coord2[1] - coord1[1]) ** 2)
+
+
 # star = Star()
 # player = Player()
 # Definition de la fenetre
@@ -344,20 +402,20 @@ while continuer:
             mx, my = pygame.mouse.get_pos()
             if not global_var.isMenu:
                 swatter.when_clicked()
-#            dx, dy = mx - player.rect.centerx, my - player.rect.centery
-#            angle = math.degrees(math.atan2(-dy, dx))
-#            print("Angle : " + str(90 - int(angle)))
+            #            dx, dy = mx - player.rect.centerx, my - player.rect.centery
+            #            angle = math.degrees(math.atan2(-dy, dx))
+            #            print("Angle : " + str(90 - int(angle)))
             if 728 > mouse[0] > 512 and 362 < mouse[1] < 417 and global_var.isMenu:  # check if btn is clicked.
                 play_btn.isClicked = True
             if 728 > mouse[0] > 512 and 436 < mouse[1] < 492 and global_var.isMenu:
                 settings_btn.isClicked = True
 
-    mx, my = pygame.mouse.get_pos()   # Rotation system
-#    dx, dy = mx - player.rect.centerx, my - player.rect.centery
-#    angle = math.degrees(math.atan2(-dy, dx)) - correction_angle
-#    angle2 = math.degrees(math.atan2(-dy, dx))
-#    rot_image = pygame.transform.rotate(player.image, angle)
-#    rot_image_rect = rot_image.get_rect(center=player.rect.center)
+    mx, my = pygame.mouse.get_pos()  # Rotation system
+    #    dx, dy = mx - player.rect.centerx, my - player.rect.centery
+    #    angle = math.degrees(math.atan2(-dy, dx)) - correction_angle
+    #    angle2 = math.degrees(math.atan2(-dy, dx))
+    #    rot_image = pygame.transform.rotate(player.image, angle)
+    #    rot_image_rect = rot_image.get_rect(center=player.rect.center)
 
     screen.blit(img_background, (0, 0))
     if global_var.isMenu:
@@ -379,12 +437,12 @@ while continuer:
             wait_bar.update(t)
             blood_bar.update()
             # mx, my = pygame.mouse.get_pos()
-#            dx, dy = mx - player.rect.centerx, my - player.rect.centery
-#            angle = math.degrees(math.atan2(-dy, dx))
-            # for x in range(0, 1000):
-                # star_list[x].update(angle)
-                # screen.blit(star_list[x].image, star_list[x].rect)
-            # screen.blit(rot_image, rot_image_rect.topleft)  # spaceship
+    #            dx, dy = mx - player.rect.centerx, my - player.rect.centery
+    #            angle = math.degrees(math.atan2(-dy, dx))
+    # for x in range(0, 1000):
+    # star_list[x].update(angle)
+    # screen.blit(star_list[x].image, star_list[x].rect)
+    # screen.blit(rot_image, rot_image_rect.topleft)  # spaceship
     pygame.display.update()
 pygame.quit()
 nlib.log("Game stopped !", "info")
