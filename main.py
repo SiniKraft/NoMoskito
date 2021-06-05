@@ -298,6 +298,8 @@ class Swatter(pygame.sprite.Sprite):
         for i in range(0, len(moskito_spawn_handler.moskito_list)):
             if nlib.collision(self.rect, moskito_spawn_handler.moskito_list[i].rect):
                 moskito_spawn_handler.moskito_list[i].destroy()
+            else:
+                print("false")
 
     def update_rect(self):
         self.rect = self.image.get_rect()
@@ -322,7 +324,7 @@ class Swatter(pygame.sprite.Sprite):
                 self.size_w = 90
                 self.size_h = 301
         screen.blit(self.image, (x - (self.rect.width / 2), y - (self.rect.height / 2)))
-        if 40 < self.time_ani < 60:
+        if 30 < self.time_ani < 70:
             self.destroy_nearby_moskitos()
 
     def when_clicked(self):
