@@ -1,16 +1,49 @@
 import logging
 import os
 import nathlib as nlib
+import sys
+import time
 
 version_name = "snapshot_001"
 version_number = 1
 
 try:
     os.remove('latest.log')
-except FileNotFoundError:
-    pass
+except Exception as e:
+    nlib.log("Couldn't remove latest.log : {}".format(str(e)), "warn")
 nlib.start_logs("latest.log")
 nlib.log("Launching game version {0} ...".format(version_name), "info")
+
+import hashlib
+
+enable_hash_checking = True  # Should only be enabled when released !!!
+
+if enable_hash_checking:
+    hashes = [["LICENSE", "d5dc6d638156797c63fffd4bc908a3ec380e37d051996284736c6222438f3c9a"],
+              ["nathlib.py", "e85f2234f4a8907d56f73a984a39b6fbcb8aa54e5bc82b62f11ad684eed83fa3"],
+              ["README.MD", "70c728ac19b13ff9a343743ee5cf821d8dfea5d253201efbabbfc284d3951702"],
+              ["settings_window.py", "17ca489a5fea4fe8243f6c6a4eaeaae8a004e9e10c0516bb4889688d7f02ecf2"],
+              ["scripts/util/FileManager.py", "1c2c2e18c473429a0d3c1ee607adc1055eed3efe64bb5b1776b0eaff9acae0a3"],
+              ["scripts/util/default/lang/en_US.py", "e32c190196fcbb4e55d07e5bc99d9f665fd9b7f9bf1dd98d72ffd04f2d0481c1"],
+              ["scripts/util/default/lang/fr_FR.py", "b105710bdec2b292ebb3b8fa8782601c3786c1f3b9cb4a9d9410926d2dce280c"]]
+
+    for _hash in hashes:
+
+        sha256_hash = hashlib.sha256()
+        with open(_hash[0], "rb") as f:
+            # Read and update hash string value in blocks of 4K
+            for byte_block in iter(lambda: f.read(4096), b""):
+                sha256_hash.update(byte_block)
+            if sha256_hash.hexdigest() == _hash[1]:
+                nlib.log("Successfully checked hash for '{0}'".format(_hash[0]), "info")
+            else:
+                nlib.log("File '{0}' got a different hash than expected !\nExpected '{1}',\nGot '{2}' !"
+                         .format(_hash[0], _hash[1], sha256_hash.hexdigest()), "fatal")
+                time.sleep(1)
+                sys.exit()
+else:
+    nlib.log("Skipping hash checking !", "warn")
+
 # Importation des modules
 
 # try:
@@ -18,7 +51,6 @@ print("------------------------------Pygame--Details--------------------------")
 import pygame
 
 print("-----------------------------------------------------------------------")
-import sys
 import webbrowser
 import time
 import random
@@ -83,6 +115,8 @@ img_moskito_list = [pygame.image.load("resources/mosquito_1.png").convert_alpha(
                     pygame.image.load("resources/mosquito_2.png").convert_alpha(),
                     pygame.image.load("resources/mosquito_3.png").convert_alpha(),
                     pygame.image.load("resources/mosquito_4.png").convert_alpha()]
+img_tmp = pygame.Surface((4, 4))
+img_tmp.fill((255, 255, 255))
 
 correction_angle = 90
 
@@ -280,6 +314,20 @@ class BloodBar(pygame.sprite.Sprite):
         screen.blit(self.image, self.rect)
 
 
+def collision(sprite1, sprite2):
+    """Used to check between 2 pygame sprites rects if they collides
+    Usage : if collision(sprite1.rect, sprite2.rect): [...]"""
+    if sprite2.right * 10 < sprite1.left:
+        return False
+    if sprite2.bottom * 10 < sprite1.top:
+        return False
+    if sprite2.left * 10 > sprite1.right:
+        return False
+    if sprite2.top * 10 > sprite1.bottom:
+        return False
+    return True
+
+
 class Swatter(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
@@ -296,10 +344,8 @@ class Swatter(pygame.sprite.Sprite):
 
     def destroy_nearby_moskitos(self):
         for i in range(0, len(moskito_spawn_handler.moskito_list)):
-            if nlib.collision(self.rect, moskito_spawn_handler.moskito_list[i].rect):
+            if pygame.sprite.spritecollide(self, pygame.sprite.GroupSingle(moskito_spawn_handler.moskito_list[i]), False):
                 moskito_spawn_handler.moskito_list[i].destroy()
-            else:
-                print("false")
 
     def update_rect(self):
         self.rect = self.image.get_rect()
@@ -324,6 +370,9 @@ class Swatter(pygame.sprite.Sprite):
                 self.size_w = 90
                 self.size_h = 301
         screen.blit(self.image, (x - (self.rect.width / 2), y - (self.rect.height / 2)))
+        self.update_rect()
+        self.rect.x = x
+        self.rect.y = y
         if 30 < self.time_ani < 70:
             self.destroy_nearby_moskitos()
 
@@ -397,8 +446,11 @@ settings_btn.minY = 436
 settings_btn.type = 'settings'
 
 
-def calculate_distance(coord1, coord2):
-    return math.sqrt((coord2[0] - coord1[0]) ** 2 + (coord2[1] - coord1[1]) ** 2)
+def calculate_distance(coord1, coord2, is_pygame_rect=True):
+    if is_pygame_rect:
+        return int(math.sqrt((coord2.centerx - coord1.centerx) ** 2 + (coord2.centery - coord1.centerx) ** 2))
+    else:
+        return int(math.sqrt((coord2[0] - coord1[0]) ** 2 + (coord2[1] - coord1[1]) ** 2))
 
 
 # star = Star()
