@@ -16,7 +16,7 @@ nlib.log("Launching game version {0} ...".format(version_name), "info")
 
 import hashlib
 
-enable_hash_checking = True  # Should only be enabled when released !!!
+enable_hash_checking = False  # Should only be enabled when released !!!
 
 if enable_hash_checking:
     hashes = [["LICENSE", "d5dc6d638156797c63fffd4bc908a3ec380e37d051996284736c6222438f3c9a"],
@@ -24,8 +24,10 @@ if enable_hash_checking:
               ["README.MD", "70c728ac19b13ff9a343743ee5cf821d8dfea5d253201efbabbfc284d3951702"],
               ["settings_window.py", "17ca489a5fea4fe8243f6c6a4eaeaae8a004e9e10c0516bb4889688d7f02ecf2"],
               ["scripts/util/FileManager.py", "1c2c2e18c473429a0d3c1ee607adc1055eed3efe64bb5b1776b0eaff9acae0a3"],
-              ["scripts/util/default/lang/en_US.py", "e32c190196fcbb4e55d07e5bc99d9f665fd9b7f9bf1dd98d72ffd04f2d0481c1"],
-              ["scripts/util/default/lang/fr_FR.py", "b105710bdec2b292ebb3b8fa8782601c3786c1f3b9cb4a9d9410926d2dce280c"]]
+              ["scripts/util/default/lang/en_US.py", "e32c190196fcbb4e55d07e5bc99d9f665fd9b7f9bf1dd98d72ffd04f2d0481c1"]
+        ,
+              ["scripts/util/default/lang/fr_FR.py", "b105710bdec2b292ebb3b8fa8782601c3786c1f3b9cb4a9d9410926d2dce280c"]
+              ]
 
     for _hash in hashes:
 
@@ -92,7 +94,7 @@ window_x = 1280
 window_y = 720
 screen = pygame.display.set_mode((window_x, window_y))
 pygame.display.set_caption("NoMoskito!")
-pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_ARROW)
+pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 clock = pygame.time.Clock()
 FPS = 60
 
@@ -117,6 +119,7 @@ img_moskito_list = [pygame.image.load("resources/mosquito_1.png").convert_alpha(
                     pygame.image.load("resources/mosquito_4.png").convert_alpha()]
 img_tmp = pygame.Surface((4, 4))
 img_tmp.fill((255, 255, 255))
+font_a = pygame.font.SysFont('Comic Sans MS', 70)
 
 correction_angle = 90
 
@@ -133,6 +136,7 @@ default_lang = eval(lang)
 
 play_btn_text = btn_font.render(default_lang[0], False, (153, 153, 0))
 settings_btn_text = btn_font.render(default_lang[1], False, (153, 153, 0))
+font_a_text = font_a.render("You died !", False, (153, 153, 0))
 
 
 # definition du joueur
@@ -147,6 +151,11 @@ class Var:
         self.click_delay = 388
         self.click_rate = 1
         self.blood = 590
+        self.moskitos_killed = 0
+        self.Playing = False
+        self.Final_Menu = False
+        self.chrono = 0  # ms
+        self.latest_chrono = 0
 
     def set_value(self, var_name, var_value):
         if var_name == "is_settings_to_save":
@@ -199,7 +208,7 @@ class MoskitoSpawnHandler:
         if self.time_spent > self.time_limit:
             self.time_spent = 0
             self.moskito_list.append(Moskito())
-            self.time_limit = self.time_limit - (self.time_limit / 100)
+            self.time_limit = self.time_limit - (self.time_limit / 75)
         for y in range(0, len(self.moskito_list)):
             self.moskito_list[y].update()
 
@@ -220,7 +229,9 @@ class Moskito(pygame.sprite.Sprite):
         self.isDestroyed = False
 
     def destroy(self):
-        self.isDestroyed = True
+        if not self.isDestroyed:
+            self.isDestroyed = True
+            global_var.moskitos_killed = global_var.moskitos_killed + 1
 
     def shiver(self):  # = trembler
         a = random.randint(1, 4)
@@ -275,6 +286,7 @@ class Moskito(pygame.sprite.Sprite):
             self.shiver()
             self.manage_ai_task()
             self.rect.move_ip(*self.velocity)
+            global_var.blood = global_var.blood - 0.05
             screen.blit(self.image, self.rect)
 
 
@@ -309,9 +321,14 @@ class BloodBar(pygame.sprite.Sprite):
         self.rect.y = 100
 
     def update(self):
-        for f in range(0, global_var.blood):
+        for f in range(0, int(global_var.blood)):
             screen.blit(self.pix_image, (self.rect.x + 3, self.rect.y + 592 - f))
         screen.blit(self.image, self.rect)
+        if global_var.blood < 0:
+            global_var.Playing = False
+            global_var.Final_Menu = True
+            pygame.mouse.set_visible(True)
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
 
 def collision(sprite1, sprite2):
@@ -344,8 +361,10 @@ class Swatter(pygame.sprite.Sprite):
 
     def destroy_nearby_moskitos(self):
         for i in range(0, len(moskito_spawn_handler.moskito_list)):
-            if pygame.sprite.spritecollide(self, pygame.sprite.GroupSingle(moskito_spawn_handler.moskito_list[i]), False):
+            a = pygame.sprite.GroupSingle(moskito_spawn_handler.moskito_list[i])
+            if pygame.sprite.spritecollide(self, a, False):
                 moskito_spawn_handler.moskito_list[i].destroy()
+            a.remove(moskito_spawn_handler.moskito_list[i])
 
     def update_rect(self):
         self.rect = self.image.get_rect()
@@ -397,7 +416,6 @@ class Button(pygame.sprite.Sprite):
         self.minY = 362
         self.maxY = 417
         self.type = 'play'
-        self.inSpace = False
 
     def update(self):
         if self.maxX > mouse[0] > self.minX and self.minY < mouse[1] < self.maxY:
@@ -405,14 +423,15 @@ class Button(pygame.sprite.Sprite):
         else:
             self.isHovered = False
         if self.isHovered:
-            pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_HAND)
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
         if self.isClicked:
             if self.type == 'play':
+                global_var.moskitos_killed = 0
                 global_var.isMenu = False
                 self.isClicked = False
-                self.inSpace = True
+                global_var.Playing = True
             elif self.type == 'settings':
-                pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_WAIT)
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_WAIT)
                 open_settings(global_var, default_lang, settings_list, version_name, lang_list, version_number)
                 self.isClicked = False
         if self.type == 'play':
@@ -427,6 +446,10 @@ class Button(pygame.sprite.Sprite):
             else:
                 screen.blit(img_btn_normal, (int(window_x / 2.5), int(window_y / 1.65)))
             screen.blit(settings_btn_text, (int(window_x / 2.35), int(window_y / 1.637)))
+
+
+def get_final_score():
+    return int((global_var.moskitos_killed * 1.5) * (global_var.latest_chrono * 0.001))
 
 
 # stars
@@ -461,6 +484,7 @@ playBtnIsClicked = False
 while continuer:
     clock.tick_busy_loop(1000)
     t = clock.get_time()
+
     mouse = pygame.mouse.get_pos()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -486,7 +510,9 @@ while continuer:
     #    angle2 = math.degrees(math.atan2(-dy, dx))
     #    rot_image = pygame.transform.rotate(player.image, angle)
     #    rot_image_rect = rot_image.get_rect(center=player.rect.center)
-
+    if not global_var.Playing and not global_var.chrono == 0:
+        global_var.latest_chrono = global_var.chrono
+        global_var.chrono = 0
     screen.blit(img_background, (0, 0))
     if global_var.isMenu:
         # When it's menu
@@ -494,19 +520,23 @@ while continuer:
         play_btn.update()
         settings_btn.update()
         if not play_btn.isHovered and not settings_btn.isHovered:
-            pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_ARROW)
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
         screen.blit(img_logo, (int(window_x / 5.2), int(window_y / 6)))  # logo
 
-    else:
-        if play_btn.inSpace:
-            # When it's space
-            pygame.mouse.set_visible(False)
-            screen.blit(img_background, (0, 0))
-            moskito_spawn_handler.update()
-            swatter.update()
-            wait_bar.update(t)
-            blood_bar.update()
-            # mx, my = pygame.mouse.get_pos()
+    elif global_var.Playing:
+        # When it's space
+        pygame.mouse.set_visible(False)
+        screen.blit(img_background, (0, 0))
+        moskito_spawn_handler.update()
+        swatter.update()
+        wait_bar.update(t)
+        blood_bar.update()
+        global_var.chrono = global_var.chrono + t
+    elif global_var.Final_Menu:
+        screen.blit(font_a_text, (
+        int(window_x / 2) - font_a_text.get_rect().centerx, int(window_y / 3) - font_a_text.get_rect().centery))
+
+        # mx, my = pygame.mouse.get_pos()
     #            dx, dy = mx - player.rect.centerx, my - player.rect.centery
     #            angle = math.degrees(math.atan2(-dy, dx))
     # for x in range(0, 1000):
