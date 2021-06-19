@@ -54,8 +54,17 @@ def open_settings(global_var, default_lang, settings_list, version_name, lang_li
     w.place(x=250, y=50)
     btn = ttk.Button(settings_window, text=default_lang[4], command=save_window_settings)
     btn.place(x=215, y=365)
+    var_1 = tk.IntVar()
+    if settings_list[2]:
+        var_1.set(1)
+    else:
+        var_1.set(0)
+    enable_audio_ck = ttk.Checkbutton(settings_window, text="Enable sound (not recommended !)", variable=var_1,
+                                      onvalue=1, offvalue=0)
+    enable_audio_ck.place(x=40, y=200)
     panel.pack()
     settings_window.mainloop()
     if global_var.get_value("is_settings_to_save"):
         settings_list[0] = variable.get()
+        settings_list[2] = var_1.get()
         nlib.save(settings_list, "settings.ini")

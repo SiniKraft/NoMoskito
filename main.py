@@ -3,6 +3,7 @@ import os
 import nathlib as nlib
 import sys
 import time
+import simpleaudio
 
 version_name = "snapshot_001"
 version_number = 1
@@ -60,7 +61,7 @@ import pickle
 import math
 import tkinter as tk
 import tkinter.ttk as ttk
-# import pygame.gfxdraw  # necessary as pygame doesn't load it by default !
+import pygame.gfxdraw  # necessary as pygame doesn't load it by default !
 import threading
 from settings_window import open_settings
 from math import cos, sin
@@ -117,6 +118,12 @@ img_moskito_list = [pygame.image.load("resources/mosquito_1.png").convert_alpha(
                     pygame.image.load("resources/mosquito_2.png").convert_alpha(),
                     pygame.image.load("resources/mosquito_3.png").convert_alpha(),
                     pygame.image.load("resources/mosquito_4.png").convert_alpha()]
+
+sounds_moskitos_list = ["resources/sounds/Single_moskito_1.wav",
+                        "resources/sounds/Single_moskito_2.wav",
+                        "resources/sounds/Single_moskito_3.wav",
+                        "resources/sounds/Single_moskito_4.wav"]
+
 img_tmp = pygame.Surface((4, 4))
 img_tmp.fill((255, 255, 255))
 font_a = pygame.font.SysFont('Comic Sans MS', 70)
@@ -156,6 +163,9 @@ class Var:
         self.Final_Menu = False
         self.chrono = 0  # ms
         self.latest_chrono = 0
+        self.renew_sound = True
+        self.enable_sound = settings_list[2]
+        self.hover_list = []
 
     def set_value(self, var_name, var_value):
         if var_name == "is_settings_to_save":
@@ -227,11 +237,27 @@ class Moskito(pygame.sprite.Sprite):
         self.ai_task_list = {}
         self.velocity = [0, 0]
         self.isDestroyed = False
+        if global_var.enable_sound:
+            self.wave_obj = simpleaudio.WaveObject.from_wave_file(sounds_moskitos_list[0])
+            self.should_renew_sound = True
+            if global_var.renew_sound:
+                try:
+                    self.play_obj = self.wave_obj.play()
+                except:
+                    nlib.log("Couldn't start a moskito_sound", "error")
+                    global_var.renew_sound = False
+                    self.should_renew_sound = False
 
     def destroy(self):
         if not self.isDestroyed:
             self.isDestroyed = True
             global_var.moskitos_killed = global_var.moskitos_killed + 1
+            global_var.renew_sound = True
+            if global_var.enable_sound:
+                try:
+                    self.play_obj.stop()
+                except:
+                    nlib.log("Couldn't stop a moskito sound !", "warn")
 
     def shiver(self):  # = trembler
         a = random.randint(1, 4)
@@ -258,6 +284,18 @@ class Moskito(pygame.sprite.Sprite):
                 'down_and_up': {'x': 0, 'y': 0, 'direction': 'up', 'time': 0}
             }
         self.velocity = [self.ai_task_list['movement']['x'], self.ai_task_list['movement']['y']]
+
+    def manage_sound(self):
+        if self.should_renew_sound:
+            try:
+                if not self.play_obj.is_playing():
+                    try:
+                        self.wave_obj.play()
+                    except:
+                        nlib.log("Couldn't renew sound for a moskito !", "error")
+                        self.should_renew_sound = False
+            except:
+                pass
 
     def limit_checker(self):
         if not self.ai_task_list == {}:  # Security measure to prevent eventual crash !!!
@@ -288,6 +326,16 @@ class Moskito(pygame.sprite.Sprite):
             self.rect.move_ip(*self.velocity)
             global_var.blood = global_var.blood - 0.05
             screen.blit(self.image, self.rect)
+            if global_var.enable_sound:
+                self.manage_sound()
+
+
+def stop_sounds():
+    for moskito in moskito_spawn_handler.moskito_list:
+        try:
+            moskito.play_obj.stop()
+        except:
+            pass
 
 
 class WaitBar(pygame.sprite.Sprite):
@@ -325,6 +373,7 @@ class BloodBar(pygame.sprite.Sprite):
             screen.blit(self.pix_image, (self.rect.x + 3, self.rect.y + 592 - f))
         screen.blit(self.image, self.rect)
         if global_var.blood < 0:
+            stop_sounds()
             global_var.Playing = False
             global_var.Final_Menu = True
             pygame.mouse.set_visible(True)
@@ -410,12 +459,14 @@ class Button(pygame.sprite.Sprite):
         self.velocity = [0, 0]
         self.rect.x = int(window_x / 2.5)
         self.rect.y = int(window_y / 2)
+        self.isHovered = False
         self.isClicked = False
         self.maxX = 728
         self.minX = 512
         self.minY = 362
         self.maxY = 417
         self.type = 'play'
+        global_var.hover_list.append(self)
 
     def update(self):
         if self.maxX > mouse[0] > self.minX and self.minY < mouse[1] < self.maxY:
@@ -448,8 +499,54 @@ class Button(pygame.sprite.Sprite):
             screen.blit(settings_btn_text, (int(window_x / 2.35), int(window_y / 1.637)))
 
 
+class NewButton(pygame.sprite.Sprite):
+    def __init__(self, pos_min, pos_max, text):
+        super().__init__()
+        self.isHovered = False
+        self.pos_min = pos_min
+        self.pos_max = pos_max
+        self.image = pygame.Surface((pos_max[0] - pos_min[0], pos_max[1] - pos_min[1]))
+        self.rect = self.image.get_rect()
+        pygame.gfxdraw.rectangle(self.image, self.rect, (206, 237, 31))
+        pygame.gfxdraw.rectangle(self.image, pygame.rect.Rect(1, 1, pos_max[0] - pos_min[0] - 2, pos_max[1] - pos_min[1]
+                                                              - 2), (206, 237, 31))
+        pygame.gfxdraw.rectangle(self.image, pygame.rect.Rect(2, 2, pos_max[0] - pos_min[0] - 4, pos_max[1] - pos_min[1]
+                                                              - 4), (206, 237, 31))
+        pygame.gfxdraw.box(self.image, pygame.rect.Rect(3, 3, pos_max[0] - pos_min[0] - 6, pos_max[1] - pos_min[1]
+                                                        - 6), (235, 248, 165))
+        self.hover_image = pygame.Surface((pos_max[0] - pos_min[0], pos_max[1] - pos_min[1]))
+        self.hover_image.blit(self.image, (0, 0, 0, 0))
+        pygame.gfxdraw.box(self.hover_image, pygame.rect.Rect(3, 3, pos_max[0] - pos_min[0] - 6, pos_max[1] - pos_min[1]
+                                                              - 6), (220, 242, 96))
+        global_var.hover_list.append(self)
+
+    def update(self):
+        mouse = pygame.mouse.get_pos()
+        if self.pos_max[0] > mouse[0] > self.pos_min[0] and self.pos_min[1] < mouse[1] < self.pos_max[1]:
+            self.isHovered = True
+            screen.blit(self.hover_image, self.pos_min)
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+        else:
+            self.isHovered = False
+            screen.blit(self.image, self.pos_min)
+
+
+newButton = NewButton((412, 362), (500, 462), "")
+
+
+def manage_buttons():
+    _tmp = False
+    for element in global_var.hover_list:
+        if element.isHovered:
+            _tmp = True
+    if _tmp:
+        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+    else:
+        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+
+
 def get_final_score():
-    return int((global_var.moskitos_killed * 1.5) * (global_var.latest_chrono * 0.001))
+    return int((global_var.moskitos_killed * 1.5) * (global_var.latest_chrono * 0.0001))
 
 
 # stars
@@ -515,12 +612,14 @@ while continuer:
         global_var.chrono = 0
     screen.blit(img_background, (0, 0))
     if global_var.isMenu:
+        manage_buttons()
+        newButton.update()
         # When it's menu
         pygame.mouse.set_visible(True)
         play_btn.update()
         settings_btn.update()
-        if not play_btn.isHovered and not settings_btn.isHovered:
-            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+        # if not play_btn.isHovered and not settings_btn.isHovered:
+        #     pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
         screen.blit(img_logo, (int(window_x / 5.2), int(window_y / 6)))  # logo
 
     elif global_var.Playing:
@@ -534,7 +633,7 @@ while continuer:
         global_var.chrono = global_var.chrono + t
     elif global_var.Final_Menu:
         screen.blit(font_a_text, (
-        int(window_x / 2) - font_a_text.get_rect().centerx, int(window_y / 3) - font_a_text.get_rect().centery))
+            int(window_x / 2) - font_a_text.get_rect().centerx, int(window_y / 3) - font_a_text.get_rect().centery))
 
         # mx, my = pygame.mouse.get_pos()
     #            dx, dy = mx - player.rect.centerx, my - player.rect.centery
@@ -545,4 +644,7 @@ while continuer:
     # screen.blit(rot_image, rot_image_rect.topleft)  # spaceship
     pygame.display.update()
 pygame.quit()
+stop_sounds()
+simpleaudio.stop_all()
 nlib.log("Game stopped !", "info")
+print("Your score : %s" % get_final_score())
