@@ -26,7 +26,7 @@ import json
 import urllib.request
 
 # nathlib version :
-nl_v = "1.0.003"
+nl_v = "1.0.004"
 
 
 def write_file(to_write, directory, add_backspace=False, overwrite=False):
@@ -50,12 +50,12 @@ def import_m(module):
     return __import__(module)
 
 
-def save(setting_list, directory):
+def save(data_to_save, target):
     """Will save a python object in binary format
     Usage : save(my_var, "my_var.dat")"""
-    with open(directory, 'wb') as settings_file:
-        pickle.dump(setting_list, settings_file)
-        settings_file.close()
+    with open(target, 'wb') as file:
+        pickle.dump(data_to_save, file)
+        file.close()
 
 
 def collision(sprite1, sprite2):
@@ -76,9 +76,9 @@ def load(directory):
     """Will load a binary file into python object
     Usage : my_loaded_var = load("my_saved_var.dat")"""
     with open(directory, 'rb') as loaded_file:
-        settings_file = pickle.load(loaded_file)
+        file = pickle.load(loaded_file)
         loaded_file.close()
-    return settings_file  # will load file in the directory specified and return it.
+    return file  # will load file in the directory specified and return it.
 
 
 def start_logs(filename):
