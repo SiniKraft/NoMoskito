@@ -1,2 +1,0 @@
-All files in this directory will get overwritten,
-so don't edit or delete them or you'll get errors !

@@ -6,6 +6,7 @@ import time
 
 version_name = "snapshot_001"
 version_number = 1
+debug_mouse = False
 
 try:
     os.remove('latest.log')
@@ -73,9 +74,7 @@ from glob import glob
 # from sys import exit
 
 # exit()
-# myvar = easygui_qt.get_string("Enter your name", "Enter your nammme")
-# from dialog import Dialog
-# Dialog.inputbox("test", None, None, "")
+
 try:
     from scripts.util.FileManager import *
 
@@ -152,7 +151,7 @@ default_lang = eval(lang)
 
 play_btn_text = btn_font.render(default_lang[0], False, (153, 153, 0))
 settings_btn_text = btn_font.render(default_lang[1], False, (153, 153, 0))
-font_a_text = font_a.render("You died !", False, (153, 153, 0))
+font_a_text = font_a.render(default_lang[11], False, (153, 153, 0))
 
 
 # definition du joueur
@@ -178,6 +177,7 @@ class Var:
         self.btn_click_list = []
         self.Final_verdict = False
         self.shop = False
+        self.best_score = [0, "nobody"]
 
     def set_value(self, var_name, var_value):
         if var_name == "is_settings_to_save":
@@ -388,6 +388,7 @@ class BloodBar(pygame.sprite.Sprite):
             stop_sounds()
             global_var.Playing = False
             global_var.Final_Menu = True
+            global_var.best_score = get_better_score()
             pygame.mouse.set_visible(True)
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
@@ -565,8 +566,20 @@ class NewButton(pygame.sprite.Sprite):
             (self.pos_max[1] - self.pos_min[1]) / 2 + self.pos_min[1] - self.text_image_rect.centery))
 
 
-shop_btn = NewButton((512, 510), (728, 566), "Shop", "shop")
+shop_btn = NewButton((512, 510), (728, 566), default_lang[10], "shop")
 close_shop_btn = NewButton((1158, 37), (1223, 79), u"\u00D7", "shop_close", "Shop")
+shop_btn_list = [NewButton((87, 116), (432, 212), "shop_btn_blood_title", "", "Shop"),
+                 NewButton((87, 222), (432, 318), "shop_btn_blood_1", "shop_btn_blood_2", "Shop"),
+                 NewButton((87, 328), (432, 424), "shop_btn_blood_2", "shop_btn_blood_3", "Shop"),
+                 NewButton((87, 434), (432, 530), "shop_btn_blood_3", "shop_btn_blood_4", "Shop"),
+                 NewButton((87, 540), (432, 636), "shop_btn_blood_4", "shop_btn_blood_5", "Shop"),
+                 NewButton((462, 116), (807, 270), "shop_btn_weapon_title", "", "Shop"),
+                 NewButton((462, 300), (807, 454), "shop_btn_swatter", "shop_btn_swatter", "Shop"),
+                 NewButton((462, 484), (807, 636), "shop_btn_blaziot", "shop_btn_blaziot", "Shop"),
+                 NewButton((837, 116), (1182, 231), "shop_btn_misc_title", "", "Shop"),
+                 NewButton((837, 251), (1182, 367), "shop_btn_heat_wave", "shop_btn_heat_wave", "Shop"),
+                 NewButton((837, 387), (1182, 502), "shop_btn_spray", "shop_btn_spray", "Shop"),
+                 NewButton((837, 522), (1182, 636), "shop_btn_lamp", "shop_btn_lamp", "Shop")]
 
 
 def manage_buttons():
@@ -608,7 +621,7 @@ settings_btn.minX = 512
 settings_btn.minY = 436
 settings_btn.type = 'settings'
 
-font_shop = pygame.font.SysFont('Comic Sans MS', 40).render("Shop", False, (153, 153, 0))
+font_shop = pygame.font.SysFont('Comic Sans MS', 40).render(default_lang[10], False, (153, 153, 0))
 font_rect = font_shop.get_rect()
 font_rect.center = (window_x / 2, 50)
 
@@ -638,6 +651,8 @@ while continuer:
                 continuer = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             mx, my = pygame.mouse.get_pos()
+            if debug_mouse:
+                print("Mouse x: %s y: %s" % (mx, my))
             if global_var.Playing:
                 swatter.when_clicked()
             #            dx, dy = mx - player.rect.centerx, my - player.rect.centery
@@ -683,12 +698,14 @@ while continuer:
         blood_bar.update()
         global_var.chrono = global_var.chrono + t
     elif global_var.Final_Menu:
+
         screen.blit(font_a_text, (
             int(window_x / 2) - font_a_text.get_rect().centerx, int(window_y / 3) - font_a_text.get_rect().centery))
         _font = pygame.font.SysFont('Comic Sans MS', 45) \
-            .render("Your score : %s" % get_final_score(), False, (153, 153, 0))
+            .render(default_lang[12] % get_final_score(), False, (153, 153, 0))
         _font_2 = pygame.font.SysFont('Comic Sans MS', 45) \
-            .render("Best score before : %s by %s", False, (153, 153, 0))
+            .render(default_lang[13] % (global_var.best_score[0], global_var.best_score[1]),
+                    False, (153, 153, 0))
         screen.blit(_font, (
             int(window_x / 2) - _font.get_rect().centerx,
             int(window_y / 2) - _font.get_rect().centery))
@@ -698,12 +715,15 @@ while continuer:
         if not global_var.Final_verdict:
             global_var.Final_verdict = True
             if get_final_score() > get_better_score()[0]:
-                overwrite_better_score(get_final_score(), "Moskito Killer")
+                overwrite_better_score(get_final_score(), str(easygui_qt.get_string(
+                    default_lang[14], default_lang[15])))
     elif global_var.shop:
         manage_buttons()
         screen.blit(shop_bg, pygame.rect.Rect(50, 30, 1180, 660))
         screen.blit(font_shop, font_rect)
         close_shop_btn.update()
+        for element in shop_btn_list:
+            element.update()
 
         # mx, my = pygame.mouse.get_pos()
     #            dx, dy = mx - player.rect.centerx, my - player.rect.centery
