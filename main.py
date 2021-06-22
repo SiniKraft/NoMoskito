@@ -16,17 +16,23 @@ nlib.start_logs("latest.log")
 nlib.log("Launching game version {0} ...".format(version_name), "info")
 
 
+def exception_handler(type, value, traceback):
+    nlib.log("{0} : {1}".format(str(type), value), "critical", 'main')
+
+
+sys.excepthook = exception_handler
 enable_hash_checking = False  # Should only be enabled when released !!!
 
 if enable_hash_checking:
     import hashlib
+
     hashes = [["LICENSE", "d5dc6d638156797c63fffd4bc908a3ec380e37d051996284736c6222438f3c9a"],
               ["nathlib.py", "e85f2234f4a8907d56f73a984a39b6fbcb8aa54e5bc82b62f11ad684eed83fa3"],
               ["README.MD", "70c728ac19b13ff9a343743ee5cf821d8dfea5d253201efbabbfc284d3951702"],
               ["settings_window.py", "17ca489a5fea4fe8243f6c6a4eaeaae8a004e9e10c0516bb4889688d7f02ecf2"],
               ["scripts/util/FileManager.py", "1c2c2e18c473429a0d3c1ee607adc1055eed3efe64bb5b1776b0eaff9acae0a3"],
               ["scripts/util/default/lang/en_US.py", "e32c190196fcbb4e55d07e5bc99d9f665fd9b7f9bf1dd98d72ffd04f2d0481c1"]
-              ,
+        ,
               ["scripts/util/default/lang/fr_FR.py", "b105710bdec2b292ebb3b8fa8782601c3786c1f3b9cb4a9d9410926d2dce280c"]
               ]
 
@@ -227,9 +233,17 @@ class MoskitoSpawnHandler:
 
     def update(self):
         self.time_spent = self.time_spent + 1
+        _tmp = 1
+        if global_var.blood < 295:
+            _tmp = 2
+        if global_var.blood < 196:
+            _tmp = 3
+        if global_var.blood < 147:
+            _tmp = 4
         if self.time_spent > self.time_limit:
             self.time_spent = 0
-            self.moskito_list.append(Moskito())
+            for moskito in range(0, random.randint(1, _tmp)):
+                self.moskito_list.append(Moskito())
             self.time_limit = self.time_limit - (self.time_limit / 75)
         for y in range(0, len(self.moskito_list)):
             self.moskito_list[y].update()

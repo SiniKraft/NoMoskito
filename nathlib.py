@@ -26,7 +26,7 @@ import json
 import urllib.request
 
 # nathlib version :
-nl_v = "1.0.004"
+nl_v = "1.0.005"
 
 
 def write_file(to_write, directory, add_backspace=False, overwrite=False):
@@ -122,7 +122,7 @@ def get_date(date_type):
     return None
 
 
-def log(message, level):
+def log(message, level, name="main"):
     """Will print a log and save it into a file
     Usage : log("This is an error", "error")"""
     if level == "debug":
@@ -135,7 +135,7 @@ def log(message, level):
         logging.error(message)
     elif level == "critical":
         logging.critical(message)
-    print("[%s][%s/%s]: %s" % (get_date("time"), level.upper(), "main", message))
+    print("[%s][%s/%s]: %s" % (get_date("time"), level.upper(), name, message))
 
 
 def check(value, filter_in):

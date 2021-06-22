@@ -4,7 +4,7 @@
 #
 # Please do not edit this :
 
-max_number = 15
+max_number = 16
 fr_FR_lang = []
 for x in range(0, max_number + 1):
     fr_FR_lang.append("Not defined")
@@ -27,3 +27,4 @@ fr_FR_lang[12] = "Votre score : %s"
 fr_FR_lang[13] = "Meilleur score avant : %s par %s"
 fr_FR_lang[14] = "Vous avez le meilleur score !\nEntrez votre nom !"
 fr_FR_lang[15] = "Entrez votre nom ..."
+fr_FR_lang[16] = "Activer le son (non recommandé !)"

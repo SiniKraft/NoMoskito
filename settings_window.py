@@ -59,7 +59,7 @@ def open_settings(global_var, default_lang, settings_list, version_name, lang_li
         var_1.set(1)
     else:
         var_1.set(0)
-    enable_audio_ck = ttk.Checkbutton(settings_window, text="Enable sound (not recommended !)", variable=var_1,
+    enable_audio_ck = ttk.Checkbutton(settings_window, text=default_lang[16], variable=var_1,
                                       onvalue=1, offvalue=0)
     enable_audio_ck.place(x=40, y=200)
     panel.pack()
