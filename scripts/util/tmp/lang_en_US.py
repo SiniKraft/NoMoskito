@@ -4,7 +4,7 @@
 #
 # Please do not edit this :
 
-max_number = 16
+max_number = 17
 en_US_lang = []
 for x in range(0, max_number + 1):
     en_US_lang.append("Not defined")
@@ -23,8 +23,9 @@ en_US_lang[8] = "Check for Updates"
 en_US_lang[9] = "Version : {0}, You are up to date"
 en_US_lang[10] = "Shop"
 en_US_lang[11] = "You died !"
-en_US_lang[12] = "Your score : %s"
-en_US_lang[13] = "Best score before : %s by %s"
+en_US_lang[12] = "Your score : {0}"
+en_US_lang[13] = "Best score before : {0} by {1}"
 en_US_lang[14] = "You have the best score !\nEnter your name !"
 en_US_lang[15] = "Enter your name ..."
 en_US_lang[16] = "Enable sound (not recommended !)"
+en_US_lang[17] = "Go back to menu"

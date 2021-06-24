@@ -24,9 +24,21 @@ import logging
 import datetime
 import json
 import urllib.request
+import sys
+from tkinter import messagebox, Tk
 
 # nathlib version :
-nl_v = "1.0.005"
+nl_v = "1.0.010"
+
+
+def setup_exception_handler():
+    def showerror(type, content, tb):
+        root = Tk()
+        root.withdraw()
+        messagebox.showerror("An error occurred", "{}: {}".format(repr(content).split("(")[0], content))
+        root.destroy()
+
+    sys.excepthook = showerror
 
 
 def write_file(to_write, directory, add_backspace=False, overwrite=False):

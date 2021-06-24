@@ -8,6 +8,7 @@ version_name = "snapshot_001"
 version_number = 1
 debug_mouse = False
 
+
 try:
     os.remove('latest.log')
 except Exception as e:
@@ -17,7 +18,12 @@ nlib.log("Launching game version {0} ...".format(version_name), "info")
 
 
 def exception_handler(type, value, traceback):
-    nlib.log("{0} : {1}".format(str(type), value), "critical", 'main')
+    nlib.log("{0}: {1}".format(repr(value).split("(")[0], value), "critical", 'main')
+    from tkinter import Tk, messagebox
+    root = Tk()
+    root.withdraw()
+    messagebox.showerror("An error occurred", "{}: {}".format(repr(value).split("(")[0], value))
+    root.destroy()
 
 
 sys.excepthook = exception_handler
@@ -564,6 +570,17 @@ class NewButton(pygame.sprite.Sprite):
         elif self.btn_type == "shop_close":
             global_var.isMenu = True
             global_var.shop = False
+        elif self.btn_type == "return_to_menu":
+            global_var.isMenu = True
+            global_var.Final_Menu = False
+            global_var.Final_verdict = False
+            moskito_spawn_handler.moskito_list = []
+            global_var.blood = 590
+            global_var.moskitos_killed = 0
+            moskito_spawn_handler.time_spent = 0
+            moskito_spawn_handler.time_limit = 500
+            global_var.chrono = 0
+            global_var.latest_chrono = 0
         pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
     def update(self):
@@ -582,18 +599,20 @@ class NewButton(pygame.sprite.Sprite):
 
 shop_btn = NewButton((512, 510), (728, 566), default_lang[10], "shop")
 close_shop_btn = NewButton((1158, 37), (1223, 79), u"\u00D7", "shop_close", "Shop")
-shop_btn_list = [NewButton((87, 116), (432, 212), "shop_btn_blood_title", "", "Shop"),
-                 NewButton((87, 222), (432, 318), "shop_btn_blood_1", "shop_btn_blood_2", "Shop"),
-                 NewButton((87, 328), (432, 424), "shop_btn_blood_2", "shop_btn_blood_3", "Shop"),
-                 NewButton((87, 434), (432, 530), "shop_btn_blood_3", "shop_btn_blood_4", "Shop"),
-                 NewButton((87, 540), (432, 636), "shop_btn_blood_4", "shop_btn_blood_5", "Shop"),
-                 NewButton((462, 116), (807, 270), "shop_btn_weapon_title", "", "Shop"),
-                 NewButton((462, 300), (807, 454), "shop_btn_swatter", "shop_btn_swatter", "Shop"),
+shop_btn_list = [NewButton((87, 116), (432, 212), "Healers", "", "Shop"),
+                 NewButton((87, 222), (432, 318), "Small blood bag (0.75L)\n100", "shop_btn_blood_2", "Shop"),
+                 NewButton((87, 328), (432, 424), "Blood bottle (1.5L)\n150", "shop_btn_blood_3", "Shop"),
+                 NewButton((87, 434), (432, 530), "Huge blood bag (4L)\n300", "shop_btn_blood_4", "Shop"),
+                 NewButton((87, 540), (432, 636), "Blood infusion (30s, 0.25 L/s)\n800", "shop_btn_blood_5", "Shop"),
+                 NewButton((462, 116), (807, 270), "Weapons", "", "Shop"),
+                 NewButton((462, 300), (807, 454), "Swatter", "shop_btn_swatter", "Shop"),
                  NewButton((462, 484), (807, 636), "shop_btn_blaziot", "shop_btn_blaziot", "Shop"),
                  NewButton((837, 116), (1182, 231), "shop_btn_misc_title", "", "Shop"),
                  NewButton((837, 251), (1182, 367), "shop_btn_heat_wave", "shop_btn_heat_wave", "Shop"),
                  NewButton((837, 387), (1182, 502), "shop_btn_spray", "shop_btn_spray", "Shop"),
                  NewButton((837, 522), (1182, 636), "shop_btn_lamp", "shop_btn_lamp", "Shop")]
+
+return_to_menu_btn = NewButton((490, 538), (790, 598), default_lang[17], "return_to_menu", "Final_Menu")
 
 
 def manage_buttons():
@@ -716,9 +735,9 @@ while continuer:
         screen.blit(font_a_text, (
             int(window_x / 2) - font_a_text.get_rect().centerx, int(window_y / 3) - font_a_text.get_rect().centery))
         _font = pygame.font.SysFont('Comic Sans MS', 45) \
-            .render(default_lang[12] % get_final_score(), False, (153, 153, 0))
+            .render(default_lang[12].format(get_final_score()), False, (153, 153, 0))
         _font_2 = pygame.font.SysFont('Comic Sans MS', 45) \
-            .render(default_lang[13] % (global_var.best_score[0], global_var.best_score[1]),
+            .render(default_lang[13].format(global_var.best_score[0], global_var.best_score[1]),
                     False, (153, 153, 0))
         screen.blit(_font, (
             int(window_x / 2) - _font.get_rect().centerx,
@@ -731,6 +750,8 @@ while continuer:
             if get_final_score() > get_better_score()[0]:
                 overwrite_better_score(get_final_score(), str(easygui_qt.get_string(
                     default_lang[14], default_lang[15])))
+        return_to_menu_btn.update()
+        manage_buttons()
     elif global_var.shop:
         manage_buttons()
         screen.blit(shop_bg, pygame.rect.Rect(50, 30, 1180, 660))
