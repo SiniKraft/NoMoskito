@@ -25,13 +25,14 @@ import datetime
 import json
 import urllib.request
 import sys
-from tkinter import messagebox, Tk
 
 # nathlib version :
-nl_v = "1.0.010"
+nl_v = "1.0.011"
 
 
 def setup_exception_handler():
+    from tkinter import messagebox, Tk
+
     def showerror(type, content, tb):
         root = Tk()
         root.withdraw()

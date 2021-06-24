@@ -80,6 +80,7 @@ import easygui_qt
 from settings_window import open_settings
 from math import cos, sin
 from glob import glob
+import ptext
 
 # except ImportError:
 # print("[ERROR]: Failed to import modules !")
