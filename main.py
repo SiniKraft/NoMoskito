@@ -8,7 +8,6 @@ version_name = "snapshot_001"
 version_number = 1
 debug_mouse = False
 
-
 try:
     os.remove('latest.log')
 except Exception as e:
@@ -38,7 +37,7 @@ if enable_hash_checking:
               ["settings_window.py", "17ca489a5fea4fe8243f6c6a4eaeaae8a004e9e10c0516bb4889688d7f02ecf2"],
               ["scripts/util/FileManager.py", "1c2c2e18c473429a0d3c1ee607adc1055eed3efe64bb5b1776b0eaff9acae0a3"],
               ["scripts/util/default/lang/en_US.py", "e32c190196fcbb4e55d07e5bc99d9f665fd9b7f9bf1dd98d72ffd04f2d0481c1"]
-        ,
+              ,
               ["scripts/util/default/lang/fr_FR.py", "b105710bdec2b292ebb3b8fa8782601c3786c1f3b9cb4a9d9410926d2dce280c"]
               ]
 
@@ -541,10 +540,11 @@ class NewButton(pygame.sprite.Sprite):
         self.isHovered = False
         self.env = env
         if not self.btn_type == "shop_close":
-            self.text_image = btn_font.render(text, False, (153, 153, 0))
+            self.text_image = ptext.getsurf(text, color=(153, 153, 0), sysfontname='Comic Sans MS') # btn_font.render(text, False, (153, 153, 0))
         else:
             self.text_image = pygame.font.SysFont('Segoe UI', 50).render(text, False, (153, 153, 0))
-        self.text_image_rect = self.text_image.get_rect()
+        self.text_image_rect = self.text_image.get_bounding_rect()
+        self.text_image = self.text_image.convert_alpha()
         # self.text_image_rect.center = ((pos_max[0] - pos_min[0]) / 2, (pos_max[1] - pos_min[1]) / 2)
         self.pos_min = pos_min
         self.pos_max = pos_max
