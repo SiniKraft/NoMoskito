@@ -559,7 +559,7 @@ class NewButton(pygame.sprite.Sprite):
         self.isHovered = False
         self.env = env
         if not self.btn_type == "shop_close":
-            self.text_image = ptext.getsurf(text, color=(153, 153, 0), sysfontname='Comic Sans MS', fontsize=font_size)
+            self.text_image = ptext.getsurf(text, color=(153, 153, 0), fontname='resources\\ComicSansMSM.ttf', fontsize=font_size)
         else:
             self.text_image = pygame.font.SysFont('Segoe UI', 50).render(text, True, (153, 153, 0))
         self.text_image_rect = self.text_image.get_bounding_rect()
@@ -622,19 +622,19 @@ class NewButton(pygame.sprite.Sprite):
 shop_btn = NewButton((512, 510), (728, 566), default_lang[10], "shop")
 close_shop_btn = NewButton((1158, 37), (1223, 79), u"\u00D7", "shop_close", "Shop")
 shop_btn_l = [NewButton((87, 116), (432, 212), "Healers", "", "Shop"),
-              NewButton((87, 222), (432, 318), "Small blood bag (0.75L)\n100", "shop_btn_blood_2", "Shop"),
-              NewButton((87, 328), (432, 424), "Blood bottle (1.5L)\n150", "shop_btn_blood_3", "Shop"),
-              NewButton((87, 434), (432, 530), "Huge blood bag (4L)\n300", "shop_btn_blood_4", "Shop"),
-              NewButton((87, 540), (432, 636), "Blood infusion (30s, 0.25 L/s)\n800", "shop_btn_blood_5", "Shop", 23),
+              NewButton((87, 222), (432, 318), "Small blood bag (0.75L)\n100 \u20BF", "shop_btn_blood_2", "Shop"),
+              NewButton((87, 328), (432, 424), "Blood bottle (1.5L)\n150 \u20BF", "shop_btn_blood_3", "Shop"),
+              NewButton((87, 434), (432, 530), "Huge blood bag (4L)\n300 \u20BF", "shop_btn_blood_4", "Shop"),
+              NewButton((87, 540), (432, 636), "Blood infusion (30s, 0.25 L/s)\n800 \u20BF", "shop_btn_blood_5", "Shop", 23),
               NewButton((462, 116), (807, 270), "Weapons", "", "Shop"),
-              NewButton((462, 300), (807, 454), "Swatter\n1000", "shop_btn_swatter", "Shop"),
-              NewButton((462, 484), (807, 636), "Imposant blaz.io ruler\n10 000", "shop_btn_blaziot", "Shop"),
+              NewButton((462, 300), (807, 454), "Swatter\n1000 \u20BF", "shop_btn_swatter", "Shop"),
+              NewButton((462, 484), (807, 636), "Imposant blazio ruler\n10 000 \u20BF", "shop_btn_blaziot", "Shop"),
               NewButton((837, 116), (1182, 231), "Satisfaction tools", "", "Shop"),
-              NewButton((837, 251), (1182, 367), "Heat wave (-25% moskitos \nspawning during this game)\n500",
+              NewButton((837, 251), (1182, 367), "Heat wave (-25% moskitos \nspawning during this game)\n500 \u20BF",
                         "shop_btn_heat_wave", "Shop", 25),
-              NewButton((837, 387), (1182, 502), "Anti moskito spray\n(Kill all moskitos during 10s)\n500",
+              NewButton((837, 387), (1182, 502), "Anti moskito spray\n(Kill all moskitos during 10s)\n500 \u20BF",
                         "shop_btn_spray", "Shop", 25),
-              NewButton((837, 522), (1182, 636), "Anti moskito lamp (Slow down\nmoskito speed by 70% during 30s)\n750",
+              NewButton((837, 522), (1182, 636), "Anti moskito lamp (Slow down\nmoskito speed by 70% during 30s)\n750 \u20BF",
                         "shop_btn_lamp", "Shop", 21)]
 
 return_to_menu_btn = NewButton((490, 538), (790, 598), default_lang[17], "return_to_menu", "Final_Menu")
