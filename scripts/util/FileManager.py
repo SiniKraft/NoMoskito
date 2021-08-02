@@ -22,7 +22,7 @@ lang_number = len(lang_files_to_load)  # Count the number of files entries
 
 def new_settings():
     with open('settings.ini', 'wb') as settings_file:
-        setting_list = ["English", False, False]
+        setting_list = ["English", False, False, False]
         pickle.dump(setting_list, settings_file)
         settings_file.close()
     return setting_list  # will create new settings, return it, and save it.
@@ -44,7 +44,7 @@ if isfile("settings.ini"):  # load the save
     try:
         settings_list = nlib.load("settings.ini")
         nlib.log("Loaded default settings.", "info", "file_manager")
-        _tmp = settings_list[2]
+        _tmp = settings_list[3]
         del _tmp
     except:
         settings_list = new_settings()

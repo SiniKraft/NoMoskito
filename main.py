@@ -4,7 +4,7 @@ import nathlib as nlib
 import sys
 import time
 
-version_name = "snapshot_001"
+version_name = "snapshot_012"
 version_number = 1
 debug_mouse = False
 
@@ -23,6 +23,7 @@ def exception_handler(type, value, traceback):
     root.withdraw()
     messagebox.showerror("An error occurred", "{}: {}".format(repr(value).split("(")[0], value))
     root.destroy()
+    sys.exit()
 
 
 sys.excepthook = exception_handler
@@ -37,7 +38,7 @@ if enable_hash_checking:
               ["settings_window.py", "17ca489a5fea4fe8243f6c6a4eaeaae8a004e9e10c0516bb4889688d7f02ecf2"],
               ["scripts/util/FileManager.py", "1c2c2e18c473429a0d3c1ee607adc1055eed3efe64bb5b1776b0eaff9acae0a3"],
               ["scripts/util/default/lang/en_US.py", "e32c190196fcbb4e55d07e5bc99d9f665fd9b7f9bf1dd98d72ffd04f2d0481c1"]
-              ,
+        ,
               ["scripts/util/default/lang/fr_FR.py", "b105710bdec2b292ebb3b8fa8782601c3786c1f3b9cb4a9d9410926d2dce280c"]
               ]
 
@@ -72,10 +73,9 @@ import pickle
 import math
 import tkinter as tk
 import tkinter.ttk as ttk
+from tkinter import simpledialog
 import pygame.gfxdraw  # necessary as pygame doesn't load it by default !
 import threading
-import simpleaudio
-import easygui_qt
 from settings_window import open_settings
 from math import cos, sin
 from glob import glob
@@ -95,18 +95,23 @@ try:
 except:
     nlib.log("Failed to load resources, aborting ...", "critical")
     sys.exit()
-
+if settings_list[2]:
+    import simpleaudio
 # Initialisation de Pygame
 
 pygame.init()
 pygame.font.init()
-pygame.mixer.init()  # Sons de pygame.
+if settings_list[2]:
+    pygame.mixer.init()  # Sons de pygame.
 
 # Definition de la fenetre
 
 window_x = 1280
 window_y = 720
-screen = pygame.display.set_mode((window_x, window_y))
+if not settings_list[3]:
+    screen = pygame.display.set_mode((window_x, window_y))
+else:
+    screen = pygame.display.set_mode((window_x, window_y), pygame.FULLSCREEN)
 pygame.display.set_caption("NoMoskito!")
 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 clock = pygame.time.Clock()
@@ -161,9 +166,9 @@ isMenu = True
 lang = lang_files_names[settings_list[0]]
 default_lang = eval(lang)
 
-play_btn_text = btn_font.render(default_lang[0], False, (153, 153, 0))
-settings_btn_text = btn_font.render(default_lang[1], False, (153, 153, 0))
-font_a_text = font_a.render(default_lang[11], False, (153, 153, 0))
+play_btn_text = btn_font.render(default_lang[0], True, (153, 153, 0))
+settings_btn_text = btn_font.render(default_lang[1], True, (153, 153, 0))
+font_a_text = font_a.render(default_lang[11], True, (153, 153, 0))
 
 
 # definition du joueur
@@ -171,7 +176,9 @@ font_a_text = font_a.render(default_lang[11], False, (153, 153, 0))
 class Var:
     def __init__(self):
         super(Var, self).__init__()
+        self.last_mouse = (0, 0)
         self.is_settings_to_save = False
+        self.IsGamePaused = False
         self.is_update_checked = False
         self.isMenu = True
         self.can_click = True
@@ -370,6 +377,17 @@ def stop_sounds():
             pass
 
 
+def pass_to_menu():
+    global_var.isMenu = True
+    pygame.mouse.set_visible(True)
+
+
+def pass_to_playing():
+    global_var.Playing = True
+    pygame.mouse.set_visible(False)
+    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+
+
 class WaitBar(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
@@ -379,13 +397,13 @@ class WaitBar(pygame.sprite.Sprite):
         self.rect.x = 470
         self.rect.y = 10
 
-    def update(self, time_):
+    def update(self, time_=None):
         if global_var.click_delay > 336:
             global_var.click_delay = 338
             global_var.can_click = True
         if not global_var.can_click:
             # global_var.click_delay = global_var.click_delay + (global_var.click_rate / 2)
-            global_var.click_delay = global_var.click_delay + (388 / time_ * 0.03)
+            global_var.click_delay = global_var.click_delay + 1.5 # (388 / time_ * 0.03)
         for f in range(0, int(global_var.click_delay)):
             screen.blit(self.pix_image, (self.rect.x + 1 + f, self.rect.y + 1))
         screen.blit(self.image, self.rect)
@@ -510,11 +528,12 @@ class Button(pygame.sprite.Sprite):
         if self.isHovered:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
         if self.isClicked:
-            if self.type == 'play':
+            if self.type == 'play' and global_var.isMenu:
                 global_var.moskitos_killed = 0
                 global_var.isMenu = False
                 self.isClicked = False
-                global_var.Playing = True
+                pass_to_playing()
+                global_var.isMenu = False
             elif self.type == 'settings':
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_WAIT)
                 open_settings(global_var, default_lang, settings_list, version_name, lang_list, version_number)
@@ -534,15 +553,15 @@ class Button(pygame.sprite.Sprite):
 
 
 class NewButton(pygame.sprite.Sprite):
-    def __init__(self, pos_min, pos_max, text, btn_type, env="Menu"):
+    def __init__(self, pos_min, pos_max, text, btn_type, env="Menu", font_size=30):
         super().__init__()
         self.btn_type = btn_type
         self.isHovered = False
         self.env = env
         if not self.btn_type == "shop_close":
-            self.text_image = ptext.getsurf(text, color=(153, 153, 0), sysfontname='Comic Sans MS') # btn_font.render(text, False, (153, 153, 0))
+            self.text_image = ptext.getsurf(text, color=(153, 153, 0), sysfontname='Comic Sans MS', fontsize=font_size)
         else:
-            self.text_image = pygame.font.SysFont('Segoe UI', 50).render(text, False, (153, 153, 0))
+            self.text_image = pygame.font.SysFont('Segoe UI', 50).render(text, True, (153, 153, 0))
         self.text_image_rect = self.text_image.get_bounding_rect()
         self.text_image = self.text_image.convert_alpha()
         # self.text_image_rect.center = ((pos_max[0] - pos_min[0]) / 2, (pos_max[1] - pos_min[1]) / 2)
@@ -569,10 +588,12 @@ class NewButton(pygame.sprite.Sprite):
             global_var.isMenu = False
             global_var.shop = True
         elif self.btn_type == "shop_close":
-            global_var.isMenu = True
-            global_var.shop = False
+            if global_var.shop:
+                pass_to_menu()
+                global_var.shop = False
         elif self.btn_type == "return_to_menu":
-            global_var.isMenu = True
+            pass_to_menu()
+            global_var.playing = False
             global_var.Final_Menu = False
             global_var.Final_verdict = False
             moskito_spawn_handler.moskito_list = []
@@ -600,18 +621,21 @@ class NewButton(pygame.sprite.Sprite):
 
 shop_btn = NewButton((512, 510), (728, 566), default_lang[10], "shop")
 close_shop_btn = NewButton((1158, 37), (1223, 79), u"\u00D7", "shop_close", "Shop")
-shop_btn_list = [NewButton((87, 116), (432, 212), "Healers", "", "Shop"),
-                 NewButton((87, 222), (432, 318), "Small blood bag (0.75L)\n100", "shop_btn_blood_2", "Shop"),
-                 NewButton((87, 328), (432, 424), "Blood bottle (1.5L)\n150", "shop_btn_blood_3", "Shop"),
-                 NewButton((87, 434), (432, 530), "Huge blood bag (4L)\n300", "shop_btn_blood_4", "Shop"),
-                 NewButton((87, 540), (432, 636), "Blood infusion (30s, 0.25 L/s)\n800", "shop_btn_blood_5", "Shop"),
-                 NewButton((462, 116), (807, 270), "Weapons", "", "Shop"),
-                 NewButton((462, 300), (807, 454), "Swatter", "shop_btn_swatter", "Shop"),
-                 NewButton((462, 484), (807, 636), "shop_btn_blaziot", "shop_btn_blaziot", "Shop"),
-                 NewButton((837, 116), (1182, 231), "shop_btn_misc_title", "", "Shop"),
-                 NewButton((837, 251), (1182, 367), "shop_btn_heat_wave", "shop_btn_heat_wave", "Shop"),
-                 NewButton((837, 387), (1182, 502), "shop_btn_spray", "shop_btn_spray", "Shop"),
-                 NewButton((837, 522), (1182, 636), "shop_btn_lamp", "shop_btn_lamp", "Shop")]
+shop_btn_l = [NewButton((87, 116), (432, 212), "Healers", "", "Shop"),
+              NewButton((87, 222), (432, 318), "Small blood bag (0.75L)\n100", "shop_btn_blood_2", "Shop"),
+              NewButton((87, 328), (432, 424), "Blood bottle (1.5L)\n150", "shop_btn_blood_3", "Shop"),
+              NewButton((87, 434), (432, 530), "Huge blood bag (4L)\n300", "shop_btn_blood_4", "Shop"),
+              NewButton((87, 540), (432, 636), "Blood infusion (30s, 0.25 L/s)\n800", "shop_btn_blood_5", "Shop", 23),
+              NewButton((462, 116), (807, 270), "Weapons", "", "Shop"),
+              NewButton((462, 300), (807, 454), "Swatter\n1000", "shop_btn_swatter", "Shop"),
+              NewButton((462, 484), (807, 636), "Imposant blaz.io ruler\n10 000", "shop_btn_blaziot", "Shop"),
+              NewButton((837, 116), (1182, 231), "Satisfaction tools", "", "Shop"),
+              NewButton((837, 251), (1182, 367), "Heat wave (-25% moskitos \nspawning during this game)\n500",
+                        "shop_btn_heat_wave", "Shop", 25),
+              NewButton((837, 387), (1182, 502), "Anti moskito spray\n(Kill all moskitos during 10s)\n500",
+                        "shop_btn_spray", "Shop", 25),
+              NewButton((837, 522), (1182, 636), "Anti moskito lamp (Slow down\nmoskito speed by 70% during 30s)\n750",
+                        "shop_btn_lamp", "Shop", 21)]
 
 return_to_menu_btn = NewButton((490, 538), (790, 598), default_lang[17], "return_to_menu", "Final_Menu")
 
@@ -655,7 +679,7 @@ settings_btn.minX = 512
 settings_btn.minY = 436
 settings_btn.type = 'settings'
 
-font_shop = pygame.font.SysFont('Comic Sans MS', 40).render(default_lang[10], False, (153, 153, 0))
+font_shop = pygame.font.SysFont('Comic Sans MS', 40).render(default_lang[10], True, (153, 153, 0))
 font_rect = font_shop.get_rect()
 font_rect.center = (window_x / 2, 50)
 
@@ -673,19 +697,36 @@ def calculate_distance(coord1, coord2, is_pygame_rect=True):
 continuer = True
 playBtnIsClicked = False
 while continuer:
-    clock.tick_busy_loop(1000)
+    clock.tick(250)
     t = clock.get_time()
+    if global_var.isMenu:
+        global_var.Playing = False
+
+    if global_var.Playing:
+        global_var.isMenu = False
 
     mouse = pygame.mouse.get_pos()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             continuer = False
-        if event.type == pygame.K_DOWN:
+        if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                continuer = False
+                if global_var.Playing:
+                    if global_var.IsGamePaused:
+                        pygame.mouse.set_pos(global_var.last_mouse)
+                        time.sleep(0.01)
+                        global_var.IsGamePaused = False
+                        pygame.mouse.set_pos(global_var.last_mouse)
+                        pygame.mouse.set_visible(False)
+                    elif not global_var.IsGamePaused:
+                        global_var.last_mouse = pygame.mouse.get_pos()
+                        global_var.IsGamePaused = True
+                        pygame.mouse.set_visible(True)
+                else:
+                    continuer = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-            mx, my = pygame.mouse.get_pos()
             if debug_mouse:
+                mx, my = pygame.mouse.get_pos()
                 print("Mouse x: %s y: %s" % (mx, my))
             if global_var.Playing:
                 swatter.when_clicked()
@@ -698,10 +739,12 @@ while continuer:
                 settings_btn.isClicked = True
 
             for btn in global_var.btn_click_list:
-                if btn.pos_max[0] > mouse[0] > btn.pos_min[0] and btn.pos_min[1] < mouse[1] < btn.pos_max[1]:
+                # if btn.pos_max[0] > mouse[0] > btn.pos_min[0] and btn.pos_min[1] < mouse[1] < btn.pos_max[1]:
+                if btn.isHovered:
                     btn.custom_action()
+                    btn.isHovered = False  # Remove a large bug !
 
-    mx, my = pygame.mouse.get_pos()  # Rotation system
+    # mx, my = pygame.mouse.get_pos()  # Rotation system
     #    dx, dy = mx - player.rect.centerx, my - player.rect.centery
     #    angle = math.degrees(math.atan2(-dy, dx)) - correction_angle
     #    angle2 = math.degrees(math.atan2(-dy, dx))
@@ -710,12 +753,12 @@ while continuer:
     if not global_var.Playing and not global_var.chrono == 0:
         global_var.latest_chrono = global_var.chrono
         global_var.chrono = 0
-    screen.blit(img_background, (0, 0))
+    if not global_var.IsGamePaused:
+        screen.blit(img_background, (0, 0))
     if global_var.isMenu:
         manage_buttons()
         shop_btn.update()
         # When it's menu
-        pygame.mouse.set_visible(True)
         play_btn.update()
         settings_btn.update()
         # if not play_btn.isHovered and not settings_btn.isHovered:
@@ -724,22 +767,27 @@ while continuer:
 
     elif global_var.Playing:
         # When it's space
-        pygame.mouse.set_visible(False)
-        screen.blit(img_background, (0, 0))
-        moskito_spawn_handler.update()
-        swatter.update()
-        wait_bar.update(t)
-        blood_bar.update()
-        global_var.chrono = global_var.chrono + t
+        if not global_var.IsGamePaused:
+            moskito_spawn_handler.update()
+            swatter.update()
+            wait_bar.update()
+            blood_bar.update()
+            screen.blit(pygame.font.SysFont("Comic Sans MS", 30).render("Esc: Pause game", True, (153, 153, 0)), (850,
+                                                                                                                  0))
+            global_var.chrono = global_var.chrono + t
+        else:
+            _tmp_font = pygame.font.SysFont('Comic Sans MS', 45).render("Game Paused (Press Escape to resume)",
+                                                                        True, (153, 153, 0))
+            _tmp_rect = _tmp_font.get_rect()
+            screen.blit(_tmp_font, ((window_x / 2 - _tmp_rect.centerx), (window_y / 2 - _tmp_rect.centery)))
     elif global_var.Final_Menu:
-
         screen.blit(font_a_text, (
             int(window_x / 2) - font_a_text.get_rect().centerx, int(window_y / 3) - font_a_text.get_rect().centery))
         _font = pygame.font.SysFont('Comic Sans MS', 45) \
-            .render(default_lang[12].format(get_final_score()), False, (153, 153, 0))
+            .render(default_lang[12].format(get_final_score()), True, (153, 153, 0))
         _font_2 = pygame.font.SysFont('Comic Sans MS', 45) \
             .render(default_lang[13].format(global_var.best_score[0], global_var.best_score[1]),
-                    False, (153, 153, 0))
+                    True, (153, 153, 0))
         screen.blit(_font, (
             int(window_x / 2) - _font.get_rect().centerx,
             int(window_y / 2) - _font.get_rect().centery))
@@ -749,8 +797,11 @@ while continuer:
         if not global_var.Final_verdict:
             global_var.Final_verdict = True
             if get_final_score() > get_better_score()[0]:
-                overwrite_better_score(get_final_score(), str(easygui_qt.get_string(
+                root = tk.Tk()
+                root.withdraw()
+                overwrite_better_score(get_final_score(), str(simpledialog.askstring(
                     default_lang[14], default_lang[15])))
+                root.destroy()
         return_to_menu_btn.update()
         manage_buttons()
     elif global_var.shop:
@@ -758,9 +809,8 @@ while continuer:
         screen.blit(shop_bg, pygame.rect.Rect(50, 30, 1180, 660))
         screen.blit(font_shop, font_rect)
         close_shop_btn.update()
-        for element in shop_btn_list:
+        for element in shop_btn_l:
             element.update()
-
         # mx, my = pygame.mouse.get_pos()
     #            dx, dy = mx - player.rect.centerx, my - player.rect.centery
     #            angle = math.degrees(math.atan2(-dy, dx))
@@ -771,5 +821,6 @@ while continuer:
     pygame.display.update()
 pygame.quit()
 stop_sounds()
-simpleaudio.stop_all()
+if settings_list[2]:
+    simpleaudio.stop_all()
 nlib.log("Game stopped !", "info")

@@ -27,7 +27,7 @@ import urllib.request
 import sys
 
 # nathlib version :
-nl_v = "1.0.011"
+NATHLIB_VERSION = "1.0.011"
 
 
 def setup_exception_handler():

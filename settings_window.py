@@ -59,12 +59,18 @@ def open_settings(global_var, default_lang, settings_list, version_name, lang_li
         var_1.set(1)
     else:
         var_1.set(0)
+    var_2 = tk.BooleanVar()
+    var_2.set(settings_list[3])
     enable_audio_ck = ttk.Checkbutton(settings_window, text=default_lang[16], variable=var_1,
                                       onvalue=1, offvalue=0)
     enable_audio_ck.place(x=40, y=200)
+    enable_fullscreen = ttk.Checkbutton(settings_window, text="Play in full screen", variable=var_2,
+                                      onvalue=True, offvalue=False)
+    enable_fullscreen.place(x=40, y=275)
     panel.pack()
     settings_window.mainloop()
     if global_var.get_value("is_settings_to_save"):
         settings_list[0] = variable.get()
         settings_list[2] = var_1.get()
+        settings_list[3] = var_2.get()
         nlib.save(settings_list, "settings.ini")
