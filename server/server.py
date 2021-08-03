@@ -2,18 +2,22 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import time
 import os
+import sys
 
 def recreate_conf():
-    with open("server.ini", "w+") as file:
+    with open("server.conf", "w+") as file:
         file.write("host_name=\"localhost\"\nport=8080")
+        file.close()
+    print("server.conf file created. Please check it before launching the server.")
+    sys.exit()
 
 try:
-    os.rename("server.ini", "serverini.py")
+    os.rename("server.conf", "serverini.py")
     try:
         from serverini import *
     except:
         recreate_conf()
-    os.rename("serverini.py", "server.ini")
+    os.rename("serverini.py", "server.conf")
 except:
     recreate_conf()
 
