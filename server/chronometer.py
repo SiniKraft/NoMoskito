@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals
 
-from monotonic import monotonic
+import importlib.util
+spec = importlib.util.spec_from_file_location("monotonic", "monotonic.py")
+foo = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(foo)
+monotonic = foo.monotonic
 
 
 __version__ = '1.0'

@@ -4,11 +4,14 @@ import time
 import os
 import sys
 import json
-from chronometer import Chronometer
 import threading
+import importlib.util
+spec = importlib.util.spec_from_file_location("chronometer", "chronometer.py")
+chronometer = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(chronometer)
 
 print("Starting NoMoskito! server ...")
-with Chronometer() as t_:
+with chronometer.Chronometer() as t_:
     def recreate_conf():
         with open("server.conf", "w+") as file:
             file.write("host_name=\"localhost\"\nport=8080\n# By changig the value of accept_license"
@@ -91,7 +94,7 @@ with Chronometer() as t_:
 
 
     print("Loading config ...")
-    with Chronometer() as t:
+    with chronometer.Chronometer() as t:
         try:
             try:
                 with open("server.conf", "r") as file:

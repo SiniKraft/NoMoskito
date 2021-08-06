@@ -95,8 +95,7 @@ try:
 except:
     nlib.log("Failed to load resources, aborting ...", "critical")
     sys.exit()
-if settings_list[2]:
-    import simpleaudio
+
 # Initialisation de Pygame
 
 pygame.init()
@@ -109,7 +108,7 @@ if settings_list[2]:
 window_x = 1280
 window_y = 720
 if not settings_list[3]:
-    screen = pygame.display.set_mode((window_x, window_y))
+    screen = pygame.display.set_mode((window_x, window_y), pygame.SCALED)
 else:
     screen = pygame.display.set_mode((window_x, window_y), pygame.FULLSCREEN)
 pygame.display.set_caption("NoMoskito!")
@@ -126,10 +125,11 @@ img_logo = pygame.image.load("resources/resource_4.png").convert_alpha()
 img_btn_normal = pygame.image.load("resources/resource_5.png").convert()
 img_btn_hovered = pygame.image.load("resources/resource_6.png").convert()
 img_swatter_1 = pygame.image.load("resources/resource_8.png").convert_alpha()
+dark_img = pygame.image.load("resources/dark.png").convert_alpha()
 img_pix_wait_bar = pygame.Surface((1, 13))
 img_pix_wait_bar.fill((104, 255, 4))
 img_blood_bar = pygame.image.load("resources/resource_9.png").convert_alpha()
-btn_font = pygame.font.SysFont('Comic Sans MS', 30)
+btn_font = pygame.font.Font("resources\\ComicSansMSM.ttf", 30)
 img_pix_blood_bar = pygame.Surface((38, 1))
 img_pix_blood_bar.fill((255, 0, 0))
 img_moskito_list = [pygame.image.load("resources/mosquito_1.png").convert_alpha(),
@@ -146,12 +146,11 @@ pygame.gfxdraw.box(shop_bg, pygame.rect.Rect(3, 3, 1174, 50), (220, 242, 96))
 
 sounds_moskitos_list = ["resources/sounds/Single_moskito_1.wav",
                         "resources/sounds/Single_moskito_2.wav",
-                        "resources/sounds/Single_moskito_3.wav",
-                        "resources/sounds/Single_moskito_4.wav"]
+                        "resources/sounds/Single_moskito_3.wav"]
 
 img_tmp = pygame.Surface((4, 4))
 img_tmp.fill((255, 255, 255))
-font_a = pygame.font.SysFont('Comic Sans MS', 70)
+font_a = pygame.font.Font("resources\\ComicSansMSM.ttf", 70)
 
 correction_angle = 90
 
@@ -171,11 +170,21 @@ settings_btn_text = btn_font.render(default_lang[1], True, (153, 153, 0))
 font_a_text = font_a.render(default_lang[11], True, (153, 153, 0))
 
 
+def get_blaziocoins():
+    return get_better_score()[2]
+
+
+def save_blaziocoins(blaziocoins):
+    a = get_better_score()
+    overwrite_better_score(a[0], a[1], blaziocoins)
+
+
 # definition du joueur
 
 class Var:
     def __init__(self):
         super(Var, self).__init__()
+        self.blaziocoins = get_blaziocoins()
         self.last_mouse = (0, 0)
         self.is_settings_to_save = False
         self.IsGamePaused = False
@@ -276,16 +285,8 @@ class Moskito(pygame.sprite.Sprite):
         self.ai_task_list = {}
         self.velocity = [0, 0]
         self.isDestroyed = False
-        if global_var.enable_sound:
-            self.wave_obj = simpleaudio.WaveObject.from_wave_file(sounds_moskitos_list[0])
-            self.should_renew_sound = True
-            if global_var.renew_sound:
-                try:
-                    self.play_obj = self.wave_obj.play()
-                except:
-                    nlib.log("Couldn't start a moskito sound", "error")
-                    global_var.renew_sound = False
-                    self.should_renew_sound = False
+        self.play_obj = pygame.mixer.Sound(sounds_moskitos_list[random.randint(0, 2)])
+        self.play_obj.play(-1)
 
     def destroy(self):
         if not self.isDestroyed:
@@ -536,6 +537,7 @@ class Button(pygame.sprite.Sprite):
                 global_var.isMenu = False
             elif self.type == 'settings':
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_WAIT)
+                show_popup()
                 open_settings(global_var, default_lang, settings_list, version_name, lang_list, version_number)
                 self.isClicked = False
         if self.type == 'play':
@@ -561,7 +563,7 @@ class NewButton(pygame.sprite.Sprite):
         if not self.btn_type == "shop_close":
             self.text_image = ptext.getsurf(text, color=(153, 153, 0), fontname='resources\\ComicSansMSM.ttf', fontsize=font_size)
         else:
-            self.text_image = pygame.font.SysFont('Segoe UI', 50).render(text, True, (153, 153, 0))
+            self.text_image = pygame.font.Font("resources\\segoeui.ttf", 50).render(text, True, (153, 153, 0))
         self.text_image_rect = self.text_image.get_bounding_rect()
         self.text_image = self.text_image.convert_alpha()
         # self.text_image_rect.center = ((pos_max[0] - pos_min[0]) / 2, (pos_max[1] - pos_min[1]) / 2)
@@ -627,7 +629,7 @@ shop_btn_l = [NewButton((87, 116), (432, 212), "Healers", "", "Shop"),
               NewButton((87, 434), (432, 530), "Huge blood bag (4L)\n300 \u20BF", "shop_btn_blood_4", "Shop"),
               NewButton((87, 540), (432, 636), "Blood infusion (30s, 0.25 L/s)\n800 \u20BF", "shop_btn_blood_5", "Shop", 23),
               NewButton((462, 116), (807, 270), "Weapons", "", "Shop"),
-              NewButton((462, 300), (807, 454), "Swatter\n1000 \u20BF", "shop_btn_swatter", "Shop"),
+              NewButton((462, 300), (807, 454), "Swatter Pro\n1000 \u20BF", "shop_btn_swatter", "Shop"),
               NewButton((462, 484), (807, 636), "Imposant blazio ruler\n10 000 \u20BF", "shop_btn_blaziot", "Shop"),
               NewButton((837, 116), (1182, 231), "Satisfaction tools", "", "Shop"),
               NewButton((837, 251), (1182, 367), "Heat wave (-25% moskitos \nspawning during this game)\n500 \u20BF",
@@ -637,7 +639,7 @@ shop_btn_l = [NewButton((87, 116), (432, 212), "Healers", "", "Shop"),
               NewButton((837, 522), (1182, 636), "Anti moskito lamp (Slow down\nmoskito speed by 70% during 30s)\n750 \u20BF",
                         "shop_btn_lamp", "Shop", 21)]
 
-return_to_menu_btn = NewButton((490, 538), (790, 598), default_lang[17], "return_to_menu", "Final_Menu")
+return_to_menu_btn = NewButton((490, 618), (790, 688), default_lang[17], "return_to_menu", "Final_Menu")
 
 
 def manage_buttons():
@@ -679,9 +681,15 @@ settings_btn.minX = 512
 settings_btn.minY = 436
 settings_btn.type = 'settings'
 
-font_shop = pygame.font.SysFont('Comic Sans MS', 40).render(default_lang[10], True, (153, 153, 0))
+font_shop = pygame.font.Font("resources\\ComicSansMSM.ttf", 40).render(default_lang[10], True, (153, 153, 0))
 font_rect = font_shop.get_rect()
 font_rect.center = (window_x / 2, 50)
+
+
+def show_popup():
+    screen.blit(dark_img, (0, 0, 1280, 720))
+    screen.blit(pygame.font.Font("resources\\ComicSansMSM.ttf", 40).render("A dialog box is opened", True, (153, 153, 0)
+                                                                           ), (0, 0, 100, 100))
 
 
 def calculate_distance(coord1, coord2, is_pygame_rect=True):
@@ -776,17 +784,20 @@ while continuer:
                                                                                                                   0))
             global_var.chrono = global_var.chrono + t
         else:
-            _tmp_font = pygame.font.SysFont('Comic Sans MS', 45).render("Game Paused (Press Escape to resume)",
+            _tmp_font = pygame.font.Font("resources\\ComicSansMSM.ttf", 45).render("Game Paused (Press Escape to resume)",
                                                                         True, (153, 153, 0))
             _tmp_rect = _tmp_font.get_rect()
             screen.blit(_tmp_font, ((window_x / 2 - _tmp_rect.centerx), (window_y / 2 - _tmp_rect.centery)))
     elif global_var.Final_Menu:
         screen.blit(font_a_text, (
             int(window_x / 2) - font_a_text.get_rect().centerx, int(window_y / 3) - font_a_text.get_rect().centery))
-        _font = pygame.font.SysFont('Comic Sans MS', 45) \
+        _font = pygame.font.Font("resources\\ComicSansMSM.ttf", 45) \
             .render(default_lang[12].format(get_final_score()), True, (153, 153, 0))
-        _font_2 = pygame.font.SysFont('Comic Sans MS', 45) \
+        _font_2 = pygame.font.Font("resources\\ComicSansMSM.ttf", 45) \
             .render(default_lang[13].format(global_var.best_score[0], global_var.best_score[1]),
+                    True, (153, 153, 0))
+        _font_3 = pygame.font.Font("resources\\ComicSansMSM.ttf", 45) \
+            .render("You win {0} \u20BF".format(int(get_final_score() * 0.75)),
                     True, (153, 153, 0))
         screen.blit(_font, (
             int(window_x / 2) - _font.get_rect().centerx,
@@ -794,20 +805,31 @@ while continuer:
         screen.blit(_font_2, (
             int(window_x / 2) - _font_2.get_rect().centerx,
             int(window_y / 1.6) - _font_2.get_rect().centery))
+        screen.blit(_font_3, (
+            int(window_x / 2) - _font_2.get_rect().centerx,
+            int(window_y / 1.3) - _font_2.get_rect().centery))
         if not global_var.Final_verdict:
             global_var.Final_verdict = True
             if get_final_score() > get_better_score()[0]:
                 root = tk.Tk()
                 root.withdraw()
+                show_popup()
                 overwrite_better_score(get_final_score(), str(simpledialog.askstring(
-                    default_lang[14], default_lang[15])))
+                    default_lang[14], default_lang[15])), global_var.blaziocoins)
                 root.destroy()
+            global_var.blaziocoins = global_var.blaziocoins + int(get_final_score() * 0.75)
+            save_blaziocoins(global_var.blaziocoins)
         return_to_menu_btn.update()
         manage_buttons()
     elif global_var.shop:
         manage_buttons()
         screen.blit(shop_bg, pygame.rect.Rect(50, 30, 1180, 660))
         screen.blit(font_shop, font_rect)
+        font_shop_2 = pygame.font.Font("resources\\ComicSansMSM.ttf", 40).render("{0} \u20BF".format(
+            global_var.blaziocoins), True, (153, 153, 0))
+        font_rect_2 = font_shop_2.get_rect()
+        font_rect_2.center = (window_x / 1.3, 50)
+        screen.blit(font_shop_2, font_rect_2)
         close_shop_btn.update()
         for element in shop_btn_l:
             element.update()
@@ -821,6 +843,4 @@ while continuer:
     pygame.display.update()
 pygame.quit()
 stop_sounds()
-if settings_list[2]:
-    simpleaudio.stop_all()
 nlib.log("Game stopped !", "info")

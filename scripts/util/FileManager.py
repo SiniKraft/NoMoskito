@@ -28,8 +28,8 @@ def new_settings():
     return setting_list  # will create new settings, return it, and save it.
 
 
-def overwrite_better_score(score, name):
-    nlib.save([score, name], 'save.dat')
+def overwrite_better_score(score, name, blaziocoins):
+    nlib.save([score, name, blaziocoins], 'save.dat')
 
 
 def get_better_score():
@@ -37,7 +37,7 @@ def get_better_score():
         return nlib.load('save.dat')
     except Exception as e:
         nlib.log("Failed to read best score file : %s" % str(e), "error", "file_manager")
-        return [0, "nobody"]
+        return [0, "nobody", 0]
 
 
 if isfile("settings.ini"):  # load the save
