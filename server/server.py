@@ -6,9 +6,7 @@ import sys
 import json
 import threading
 import importlib.util
-spec = importlib.util.spec_from_file_location("chronometer", "chronometer.py")
-chronometer = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(chronometer)
+import chronometer
 
 print("Starting NoMoskito! server ...")
 with chronometer.Chronometer() as t_:
@@ -187,6 +185,7 @@ with chronometer.Chronometer() as t_:
         webServer = HTTPServer((host_name, port), MyServer)
         print("Server started at 'http://%s:%s' !" % (host_name, port))
         print("Starting server took {:.3f} seconds.".format(float(t)))
+        print("Enter Ctrl+C to stop the server.")
 
         def launch_server():
             try:
@@ -194,14 +193,8 @@ with chronometer.Chronometer() as t_:
             except KeyboardInterrupt:
                 pass
             webServer.server_close()
-            print("Server stopped. (Server ran for {:.3f} seconds.)".format(float(t)))
 
-        start_srv_thread = threading.Thread(target=launch_server)
-        start_srv_thread.start()
-        print("Enter stop to stop the server.")
-        while True:
-            a = input("")
-            if a == "stop":
-                break
+        launch_server()
         print("Server stopped. (Server ran for {:.3f} seconds.)".format(float(t)))
         sys.exit()
+        quit()

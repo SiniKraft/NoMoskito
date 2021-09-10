@@ -31,6 +31,7 @@ def open_settings(global_var, default_lang, settings_list, version_name, lang_li
     settings_window = tk.Tk()
     settings_window.title(default_lang[1])
     # move window center
+    fullscreen_mode = settings_list[3]
     winWidth = settings_window.winfo_reqwidth()
     winwHeight = settings_window.winfo_reqheight()
     posRight = int(settings_window.winfo_screenwidth() / 2 - winWidth / 2)
@@ -48,6 +49,8 @@ def open_settings(global_var, default_lang, settings_list, version_name, lang_li
     text.place(x=170, y=50)
     update_txt = ttk.Label(settings_window, text=default_lang[7].format(version_name))
     update_txt.place(x=170, y=125)
+    warn_txt = ttk.Label(settings_window, text="Warning: You need to restart the game to apply changes !")
+    warn_txt.place(x=40, y=320)
     btn_update = ttk.Button(settings_window, text=default_lang[8], command=check_update_main)
     btn_update.place(x=40, y=125)
     w = ttk.OptionMenu(settings_window, variable, settings_list[0], *lang_list)
@@ -64,13 +67,17 @@ def open_settings(global_var, default_lang, settings_list, version_name, lang_li
     enable_audio_ck = ttk.Checkbutton(settings_window, text=default_lang[16], variable=var_1,
                                       onvalue=1, offvalue=0)
     enable_audio_ck.place(x=40, y=200)
-    enable_fullscreen = ttk.Checkbutton(settings_window, text="Play in full screen", variable=var_2,
+    enable_fullscreen = ttk.Checkbutton(settings_window, text="Play in full screen (F11)", variable=var_2,
                                       onvalue=True, offvalue=False)
     enable_fullscreen.place(x=40, y=275)
     panel.pack()
+    settings_window.lift()
+    settings_window.attributes('-topmost', True)  # note - before topmost
     settings_window.mainloop()
     if global_var.get_value("is_settings_to_save"):
         settings_list[0] = variable.get()
         settings_list[2] = var_1.get()
         settings_list[3] = var_2.get()
+        if fullscreen_mode != var_2.get():
+            global_var.change_fullscreen = True
         nlib.save(settings_list, "settings.ini")

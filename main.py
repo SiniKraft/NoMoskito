@@ -108,7 +108,7 @@ if settings_list[2]:
 window_x = 1280
 window_y = 720
 if not settings_list[3]:
-    screen = pygame.display.set_mode((window_x, window_y), pygame.SCALED)
+    screen = pygame.display.set_mode((window_x, window_y))
 else:
     screen = pygame.display.set_mode((window_x, window_y), pygame.FULLSCREEN)
 pygame.display.set_caption("NoMoskito!")
@@ -126,6 +126,7 @@ img_btn_normal = pygame.image.load("resources/resource_5.png").convert()
 img_btn_hovered = pygame.image.load("resources/resource_6.png").convert()
 img_swatter_1 = pygame.image.load("resources/resource_8.png").convert_alpha()
 dark_img = pygame.image.load("resources/dark.png").convert_alpha()
+init_img = pygame.image.load("resources/init.png").convert()
 img_pix_wait_bar = pygame.Surface((1, 13))
 img_pix_wait_bar.fill((104, 255, 4))
 img_blood_bar = pygame.image.load("resources/resource_9.png").convert_alpha()
@@ -153,6 +154,8 @@ img_tmp.fill((255, 255, 255))
 font_a = pygame.font.Font("resources\\ComicSansMSM.ttf", 70)
 
 correction_angle = 90
+
+opaque = 1055
 
 pygame.display.set_icon(img_icon)
 
@@ -184,6 +187,7 @@ def save_blaziocoins(blaziocoins):
 class Var:
     def __init__(self):
         super(Var, self).__init__()
+        self.change_fullscreen = False
         self.blaziocoins = get_blaziocoins()
         self.last_mouse = (0, 0)
         self.is_settings_to_save = False
@@ -285,8 +289,9 @@ class Moskito(pygame.sprite.Sprite):
         self.ai_task_list = {}
         self.velocity = [0, 0]
         self.isDestroyed = False
-        self.play_obj = pygame.mixer.Sound(sounds_moskitos_list[random.randint(0, 2)])
-        self.play_obj.play(-1)
+        if global_var.enable_sound:
+            self.play_obj = pygame.mixer.Sound(sounds_moskitos_list[random.randint(0, 2)])
+            self.play_obj.play(-1)
 
     def destroy(self):
         if not self.isDestroyed:
@@ -326,16 +331,17 @@ class Moskito(pygame.sprite.Sprite):
         self.velocity = [self.ai_task_list['movement']['x'], self.ai_task_list['movement']['y']]
 
     def manage_sound(self):
-        if self.should_renew_sound:
-            try:
-                if not self.play_obj.is_playing():
-                    try:
-                        self.wave_obj.play()
-                    except:
-                        nlib.log("Couldn't renew sound for a moskito !", "error")
-                        self.should_renew_sound = False
-            except:
-                pass
+        pass
+        # if self.should_renew_sound:
+        #     try:
+        #         if not self.play_obj.is_playing():
+        #             try:
+        #                 self.wave_obj.play()
+        #             except:
+        #                 nlib.log("Couldn't renew sound for a moskito !", "error")
+        #                 self.should_renew_sound = False
+        #     except:
+        #         pass
 
     def limit_checker(self):
         if not self.ai_task_list == {}:  # Security measure to prevent eventual crash !!!
@@ -527,7 +533,8 @@ class Button(pygame.sprite.Sprite):
         else:
             self.isHovered = False
         if self.isHovered:
-            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+            if not opaque >= 0:
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
         if self.isClicked:
             if self.type == 'play' and global_var.isMenu:
                 global_var.moskitos_killed = 0
@@ -540,6 +547,9 @@ class Button(pygame.sprite.Sprite):
                 show_popup()
                 open_settings(global_var, default_lang, settings_list, version_name, lang_list, version_number)
                 self.isClicked = False
+                if global_var.change_fullscreen:
+                    global_var.change_fullscreen = False
+                    pygame.display.toggle_fullscreen()
         if self.type == 'play':
             if self.isHovered:
                 screen.blit(img_btn_hovered, (int(window_x / 2.5), int(window_y / 2)))
@@ -612,7 +622,8 @@ class NewButton(pygame.sprite.Sprite):
         if self.pos_max[0] > mouse[0] > self.pos_min[0] and self.pos_min[1] < mouse[1] < self.pos_max[1]:
             self.isHovered = True
             screen.blit(self.hover_image, self.pos_min)
-            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+            if not opaque >= 0:
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
         else:
             self.isHovered = False
             screen.blit(self.image, self.pos_min)
@@ -656,7 +667,8 @@ def manage_buttons():
         if element.isHovered and element.env == current_env:
             _tmp = True
     if _tmp:
-        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+        if not opaque >= 0:
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
     else:
         pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
@@ -718,6 +730,10 @@ while continuer:
         if event.type == pygame.QUIT:
             continuer = False
         if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_F11:
+                settings_list[3] = not settings_list[3]
+                nlib.save(settings_list, "settings.ini")
+                pygame.display.toggle_fullscreen()
             if event.key == pygame.K_ESCAPE:
                 if global_var.Playing:
                     if global_var.IsGamePaused:
@@ -840,6 +856,12 @@ while continuer:
     # star_list[x].update(angle)
     # screen.blit(star_list[x].image, star_list[x].rect)
     # screen.blit(rot_image, rot_image_rect.topleft)  # spaceship
+    if opaque >= 0:
+        if opaque < 256:
+            init_img.set_alpha(opaque)
+        screen.blit(init_img, (0, 0))
+        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+        opaque = opaque - 1.5
     pygame.display.update()
 pygame.quit()
 stop_sounds()
