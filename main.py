@@ -1,4 +1,3 @@
-import logging
 import os
 import nathlib as nlib
 import sys
@@ -26,7 +25,9 @@ def exception_handler(type, value, traceback):
     sys.exit()
 
 
-sys.excepthook = exception_handler
+enable_exception_handler = False
+if enable_exception_handler:
+    sys.excepthook = exception_handler
 enable_hash_checking = False  # Should only be enabled when released !!!
 
 if enable_hash_checking:
@@ -66,18 +67,13 @@ print("------------------------------Pygame--Details--------------------------")
 import pygame
 
 print("-----------------------------------------------------------------------")
-import webbrowser
 import time
 import random
-import pickle
 import math
 import tkinter as tk
-import tkinter.ttk as ttk
 from tkinter import simpledialog
 import pygame.gfxdraw  # necessary as pygame doesn't load it by default !
-import threading
 from settings_window import open_settings
-from math import cos, sin
 from glob import glob
 import ptext
 
@@ -117,7 +113,16 @@ clock = pygame.time.Clock()
 FPS = 60
 
 # ressources à charger
-# img_spaceship = pygame.image.load("resources/resource_0").convert_alpha()
+shop_blood_bag = pygame.image.load("resources/blood_bag.png").convert_alpha()
+shop_blood_bag = pygame.transform.scale(shop_blood_bag, (50, 50))
+shop_blood_bottle = pygame.image.load("resources/blood_bottle.png").convert_alpha()
+shop_blood_bottle = pygame.transform.scale(shop_blood_bottle, (80, 80))
+shop_blood_barrel = pygame.image.load("resources/barrel_blood.png").convert_alpha()
+shop_blood_barrel = pygame.transform.scale(shop_blood_barrel, (96, 96))
+shop_blood_infusion = pygame.image.load("resources/blood_infusion.png").convert_alpha()
+shop_blood_infusion = pygame.transform.scale(shop_blood_infusion, (176, 117))
+swatter_pro = pygame.image.load("resources/swatter_pro.png").convert_alpha()
+shop_swatter_pro = pygame.transform.scale(swatter_pro, (41, 275))
 img_wait_bar_1 = pygame.image.load("resources/resource_0.png").convert_alpha()
 img_icon = pygame.image.load("resources/resource_2.png").convert_alpha()
 img_background = pygame.image.load("resources/resource_1.jpg").convert()
@@ -183,6 +188,8 @@ def save_blaziocoins(blaziocoins):
 
 
 # definition du joueur
+BLOOD = 590
+
 
 class Var:
     def __init__(self):
@@ -197,7 +204,7 @@ class Var:
         self.can_click = True
         self.click_delay = 388
         self.click_rate = 1
-        self.blood = 590
+        self.blood = BLOOD
         self.moskitos_killed = 0
         self.Playing = False
         self.Final_Menu = False
@@ -410,7 +417,7 @@ class WaitBar(pygame.sprite.Sprite):
             global_var.can_click = True
         if not global_var.can_click:
             # global_var.click_delay = global_var.click_delay + (global_var.click_rate / 2)
-            global_var.click_delay = global_var.click_delay + 1.5 # (388 / time_ * 0.03)
+            global_var.click_delay = global_var.click_delay + 1.5  # (388 / time_ * 0.03)
         for f in range(0, int(global_var.click_delay)):
             screen.blit(self.pix_image, (self.rect.x + 1 + f, self.rect.y + 1))
         screen.blit(self.image, self.rect)
@@ -463,10 +470,15 @@ class Swatter(pygame.sprite.Sprite):
         self.rect.y = mouse2[1]
         self.isClicking = False
         self.time_ani = 0
-        self.size_w = 90
-        self.size_h = 301
+        self.base_size_w = 90  # Swatter pro is 108
+        self.base_size_h = 602  # Swatter pro is 718
+        self.size_w = self.base_size_w
+        self.size_h = self.base_size_h
+        self.moskito_kill_radius = (90, 105)   # swatter pro is (108, 126)
 
     def destroy_nearby_moskitos(self):
+        self.rect.width = self.moskito_kill_radius[0]
+        self.rect.height = self.moskito_kill_radius[1]
         for i in range(0, len(moskito_spawn_handler.moskito_list)):
             a = pygame.sprite.GroupSingle(moskito_spawn_handler.moskito_list[i])
             if pygame.sprite.spritecollide(self, a, False):
@@ -493,8 +505,8 @@ class Swatter(pygame.sprite.Sprite):
             else:
                 self.isClicking = False
                 self.time_ani = 0
-                self.size_w = 90
-                self.size_h = 301
+                self.size_w = self.base_size_w
+                self.size_h = self.base_size_h
         screen.blit(self.image, (x - (self.rect.width / 2), y - (self.rect.height / 2)))
         self.update_rect()
         self.rect.x = x
@@ -538,6 +550,8 @@ class Button(pygame.sprite.Sprite):
         if self.isClicked:
             if self.type == 'play' and global_var.isMenu:
                 global_var.moskitos_killed = 0
+                moskito_spawn_handler.moskito_list = []
+                global_var.blood = BLOOD
                 global_var.isMenu = False
                 self.isClicked = False
                 pass_to_playing()
@@ -564,6 +578,19 @@ class Button(pygame.sprite.Sprite):
             screen.blit(settings_btn_text, (int(window_x / 2.35), int(window_y / 1.637)))
 
 
+def show_shop_btn_image(btn_type):
+    if btn_type == "shop_btn_blood_2":
+        screen.blit(shop_blood_bag, (376, 262))
+    elif btn_type == "shop_btn_blood_3":
+        screen.blit(shop_blood_bottle, (366, 336))
+    elif btn_type == "shop_btn_blood_4":
+        screen.blit(shop_blood_barrel, (350, 435))
+    elif btn_type == "shop_btn_blood_5":
+        screen.blit(shop_blood_infusion, (256, 525))
+    elif btn_type == "shop_btn_swatter":
+        screen.blit(shop_swatter_pro, (757, 173))
+
+
 class NewButton(pygame.sprite.Sprite):
     def __init__(self, pos_min, pos_max, text, btn_type, env="Menu", font_size=30):
         super().__init__()
@@ -571,7 +598,8 @@ class NewButton(pygame.sprite.Sprite):
         self.isHovered = False
         self.env = env
         if not self.btn_type == "shop_close":
-            self.text_image = ptext.getsurf(text, color=(153, 153, 0), fontname='resources\\ComicSansMSM.ttf', fontsize=font_size)
+            self.text_image = ptext.getsurf(text, color=(153, 153, 0), fontname='resources\\ComicSansMSM.ttf',
+                                            fontsize=font_size)
         else:
             self.text_image = pygame.font.Font("resources\\segoeui.ttf", 50).render(text, True, (153, 153, 0))
         self.text_image_rect = self.text_image.get_bounding_rect()
@@ -627,6 +655,7 @@ class NewButton(pygame.sprite.Sprite):
         else:
             self.isHovered = False
             screen.blit(self.image, self.pos_min)
+        show_shop_btn_image(self.btn_type)
         screen.blit(self.text_image, (
             (self.pos_max[0] - self.pos_min[0]) / 2 + self.pos_min[0] - self.text_image_rect.centerx,
             (self.pos_max[1] - self.pos_min[1]) / 2 + self.pos_min[1] - self.text_image_rect.centery))
@@ -638,16 +667,18 @@ shop_btn_l = [NewButton((87, 116), (432, 212), "Healers", "", "Shop"),
               NewButton((87, 222), (432, 318), "Small blood bag (0.75L)\n100 \u20BF", "shop_btn_blood_2", "Shop"),
               NewButton((87, 328), (432, 424), "Blood bottle (1.5L)\n150 \u20BF", "shop_btn_blood_3", "Shop"),
               NewButton((87, 434), (432, 530), "Huge blood bag (4L)\n300 \u20BF", "shop_btn_blood_4", "Shop"),
-              NewButton((87, 540), (432, 636), "Blood infusion (30s, 0.25 L/s)\n800 \u20BF", "shop_btn_blood_5", "Shop", 23),
+              NewButton((87, 540), (432, 636), "Blood infusion (30s, 0.25 L/s)\n800 \u20BF", "shop_btn_blood_5", "Shop",
+                        23),
               NewButton((462, 116), (807, 270), "Weapons", "", "Shop"),
               NewButton((462, 300), (807, 454), "Swatter Pro\n1000 \u20BF", "shop_btn_swatter", "Shop"),
-              NewButton((462, 484), (807, 636), "Imposant blazio ruler\n10 000 \u20BF", "shop_btn_blaziot", "Shop"),
+              NewButton((462, 484), (807, 636), "Imposant bzio ruler\n10 000 \u20BF", "shop_btn_blaziot", "Shop"),
               NewButton((837, 116), (1182, 231), "Satisfaction tools", "", "Shop"),
               NewButton((837, 251), (1182, 367), "Heat wave (-25% moskitos \nspawning during this game)\n500 \u20BF",
                         "shop_btn_heat_wave", "Shop", 25),
               NewButton((837, 387), (1182, 502), "Anti moskito spray\n(Kill all moskitos during 10s)\n500 \u20BF",
                         "shop_btn_spray", "Shop", 25),
-              NewButton((837, 522), (1182, 636), "Anti moskito lamp (Slow down\nmoskito speed by 70% during 30s)\n750 \u20BF",
+              NewButton((837, 522), (1182, 636),
+                        "Anti moskito lamp (Slow down\nmoskito speed by 70% during 30s)\n750 \u20BF",
                         "shop_btn_lamp", "Shop", 21)]
 
 return_to_menu_btn = NewButton((490, 618), (790, 688), default_lang[17], "return_to_menu", "Final_Menu")
@@ -730,6 +761,12 @@ while continuer:
         if event.type == pygame.QUIT:
             continuer = False
         if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                if global_var.IsGamePaused:
+                    global_var.IsGamePaused = False
+                    global_var.Playing = False
+                    pass_to_menu()
+
             if event.key == pygame.K_F11:
                 settings_list[3] = not settings_list[3]
                 nlib.save(settings_list, "settings.ini")
@@ -737,12 +774,22 @@ while continuer:
             if event.key == pygame.K_ESCAPE:
                 if global_var.Playing:
                     if global_var.IsGamePaused:
+                        try:
+                            for moskito in moskito_spawn_handler.moskito_list:
+                                moskito.play_obj.play(-1)
+                        except Exception as e:
+                            nlib.log(str(e), "warn")
                         pygame.mouse.set_pos(global_var.last_mouse)
-                        time.sleep(0.01)
+                        time.sleep(0.03)
                         global_var.IsGamePaused = False
                         pygame.mouse.set_pos(global_var.last_mouse)
                         pygame.mouse.set_visible(False)
                     elif not global_var.IsGamePaused:
+                        try:
+                            for moskito in moskito_spawn_handler.moskito_list:
+                                moskito.play_obj.stop()
+                        except Exception as e:
+                            nlib.log(str(e), "warn")
                         global_var.last_mouse = pygame.mouse.get_pos()
                         global_var.IsGamePaused = True
                         pygame.mouse.set_visible(True)
@@ -751,7 +798,7 @@ while continuer:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if debug_mouse:
                 mx, my = pygame.mouse.get_pos()
-                print("Mouse x: %s y: %s" % (mx, my))
+                nlib.log("Mouse x: %s y: %s" % (mx, my), "debug")
             if global_var.Playing:
                 swatter.when_clicked()
             #            dx, dy = mx - player.rect.centerx, my - player.rect.centery
@@ -796,12 +843,14 @@ while continuer:
             swatter.update()
             wait_bar.update()
             blood_bar.update()
-            screen.blit(pygame.font.SysFont("Comic Sans MS", 30).render("Esc: Pause game", True, (153, 153, 0)), (850,
-                                                                                                                  0))
+            screen.blit(pygame.font.SysFont("Comic Sans MS", 30).render("Esc: Pause game", True, (0, 0, 0)), (850,
+                                                                                                              0))
             global_var.chrono = global_var.chrono + t
         else:
-            _tmp_font = pygame.font.Font("resources\\ComicSansMSM.ttf", 45).render("Game Paused (Press Escape to resume)",
-                                                                        True, (153, 153, 0))
+            # _tmp_font = pygame.font.Font("resources\\ComicSansMSM.ttf", 45).render("Game Paused (Press Escape to resume)\nPress Space to quit",
+            # True, (153, 153, 0))
+            _tmp_font = ptext.getsurf("Game Paused (Press Escape to resume)\nPress Space to quit", color=(153, 153, 0),
+                                      fontname='resources\\ComicSansMSM.ttf', fontsize=45)
             _tmp_rect = _tmp_font.get_rect()
             screen.blit(_tmp_font, ((window_x / 2 - _tmp_rect.centerx), (window_y / 2 - _tmp_rect.centery)))
     elif global_var.Final_Menu:
@@ -866,3 +915,4 @@ while continuer:
 pygame.quit()
 stop_sounds()
 nlib.log("Game stopped !", "info")
+sys.exit(0)

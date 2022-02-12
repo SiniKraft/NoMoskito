@@ -3,7 +3,6 @@ from shutil import copyfile
 from importlib import import_module
 import pickle
 from os.path import isfile
-import logging
 import nathlib as nlib
 
 nlib.start_logs("latest.log")
@@ -37,7 +36,7 @@ def get_better_score():
         return nlib.load('save.dat')
     except Exception as e:
         nlib.log("Failed to read best score file : %s" % str(e), "error", "file_manager")
-        return [0, "nobody", 0]
+        return [0, "nobody", 0]  # Best score, best player name, b coins, 0: Basic Swatter, 1: Swatter Pro 2: B Ruler
 
 
 if isfile("settings.ini"):  # load the save
