@@ -10,7 +10,7 @@ def open_settings(global_var, default_lang, settings_list, version_name, lang_li
 
     def check_update_main():
         update_result = nlib.get_json_from_url("https://raw.githubusercontent.com/SiniKraft/"
-                                               "Space-Escape/master/update.json")
+                                               "NoMoskito/master/update.json")
 
         def download():
             webbrowser.open(update_result["version"]["latest"]["download"])

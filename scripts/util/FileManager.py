@@ -21,14 +21,14 @@ lang_number = len(lang_files_to_load)  # Count the number of files entries
 
 def new_settings():
     with open('settings.ini', 'wb') as settings_file:
-        setting_list = ["English", False, False, False]
+        setting_list = ["English", False, False, False, 0]  # 0 is swatter, 1 pro, 2 ruler
         pickle.dump(setting_list, settings_file)
         settings_file.close()
     return setting_list  # will create new settings, return it, and save it.
 
 
-def overwrite_better_score(score, name, blaziocoins):
-    nlib.save([score, name, blaziocoins], 'save.dat')
+def overwrite_better_score(score, name, bziocoins):
+    nlib.save([score, name, bziocoins], 'save.dat')
 
 
 def get_better_score():
@@ -36,7 +36,8 @@ def get_better_score():
         return nlib.load('save.dat')
     except Exception as e:
         nlib.log("Failed to read best score file : %s" % str(e), "error", "file_manager")
-        return [0, "nobody", 0]  # Best score, best player name, b coins, 0: Basic Swatter, 1: Swatter Pro 2: B Ruler
+        return [0, "nobody", 0, 0, []]  # Best score, best player name, b coins, 0: Basic Swatter, 1: Swatter Pro 2:
+        # B Ruler, and list containing List [0 : item id, 1 : count]
 
 
 if isfile("settings.ini"):  # load the save

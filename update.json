@@ -1,0 +1,9 @@
+{
+    "version": {
+        "latest": {
+            "name": "release_1",
+            "number": 1,
+            "download": "https://github.com/SiniKraft/NoMoskito/releases/"
+        }
+    }
+}
