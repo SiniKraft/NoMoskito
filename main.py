@@ -74,7 +74,6 @@ import tkinter as tk
 from tkinter import simpledialog
 import pygame.gfxdraw  # necessary as pygame doesn't load it by default !
 from settings_window import open_settings
-from glob import glob
 import ptext
 
 # except ImportError:
@@ -99,7 +98,7 @@ pygame.font.init()
 if settings_list[2]:
     pygame.mixer.init()  # Sons de pygame.
 
-# Definition de la fenetre
+# Definition de la fenêtre
 
 window_x = 1280
 window_y = 720
@@ -123,6 +122,14 @@ shop_blood_infusion = pygame.image.load("resources/blood_infusion.png").convert_
 shop_blood_infusion = pygame.transform.scale(shop_blood_infusion, (176, 117))
 swatter_pro = pygame.image.load("resources/swatter_pro.png").convert_alpha()
 shop_swatter_pro = pygame.transform.scale(swatter_pro, (41, 275))
+bzio_ruler = pygame.image.load("resources/imposant_ruler.png").convert_alpha()
+shop_bzio_ruler = pygame.transform.scale(bzio_ruler, (128, 128))
+img_heat_wave = pygame.image.load("resources/hot.png").convert_alpha()
+shop_heat_wave = pygame.transform.scale(img_heat_wave, (17, 48))
+img_spray = pygame.image.load("resources/anti_moskito_spray.png").convert_alpha()
+shop_spray = pygame.transform.scale(img_spray, (38, 85))
+img_lamp = pygame.image.load("resources/anti_moskito_lamp.png").convert_alpha()
+shop_lamp = pygame.transform.scale(img_lamp, (66, 95))
 img_wait_bar_1 = pygame.image.load("resources/resource_0.png").convert_alpha()
 img_icon = pygame.image.load("resources/resource_2.png").convert_alpha()
 img_background = pygame.image.load("resources/resource_1.jpg").convert()
@@ -589,6 +596,14 @@ def show_shop_btn_image(btn_type):
         screen.blit(shop_blood_infusion, (256, 525))
     elif btn_type == "shop_btn_swatter":
         screen.blit(shop_swatter_pro, (757, 173))
+    elif btn_type == "shop_btn_bzio":
+        screen.blit(shop_bzio_ruler, (655, 524))
+    elif btn_type == "shop_btn_heat_wave":
+        screen.blit(shop_heat_wave, (1150, 313))
+    elif btn_type == "shop_btn_spray":
+        screen.blit(shop_spray, (1135, 408))
+    elif btn_type == "shop_btn_lamp":
+        screen.blit(shop_lamp, (1112, 526))
 
 
 class NewButton(pygame.sprite.Sprite):
@@ -671,7 +686,7 @@ shop_btn_l = [NewButton((87, 116), (432, 212), "Healers", "", "Shop"),
                         23),
               NewButton((462, 116), (807, 270), "Weapons", "", "Shop"),
               NewButton((462, 300), (807, 454), "Swatter Pro\n1000 \u20BF", "shop_btn_swatter", "Shop"),
-              NewButton((462, 484), (807, 636), "Imposant bzio ruler\n10 000 \u20BF", "shop_btn_blaziot", "Shop"),
+              NewButton((462, 484), (807, 636), "Imposant bzio ruler\n10 000 \u20BF", "shop_btn_bzio", "Shop"),
               NewButton((837, 116), (1182, 231), "Satisfaction tools", "", "Shop"),
               NewButton((837, 251), (1182, 367), "Heat wave (-25% moskitos \nspawning during this game)\n500 \u20BF",
                         "shop_btn_heat_wave", "Shop", 25),
@@ -694,6 +709,8 @@ def manage_buttons():
         current_env = "Shop"
     elif global_var.Final_Menu:
         current_env = "Final_Menu"
+    else:
+        current_env = ""
     for element in global_var.btn_hover_list:
         if element.isHovered and element.env == current_env:
             _tmp = True
