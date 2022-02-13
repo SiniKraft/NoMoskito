@@ -9,8 +9,15 @@ def open_settings(global_var, default_lang, settings_list, version_name, lang_li
     global_var.set_value("is_update_checked", False)
 
     def check_update_main():
-        update_result = nlib.get_json_from_url("https://raw.githubusercontent.com/SiniKraft/"
-                                               "NoMoskito/master/update.json")
+        try:
+            update_result = nlib.get_json_from_url("https://raw.githubusercontent.com/SiniKraft/"
+                                                   "NoMoskito/master/update.json")
+        except Exception as e:
+            nlib.log("Failed to check for updates ! %s" % repr(e).split("(")[0] + ": " + str(e),
+                     "error", "settings_window")
+            messagebox.showerror("Cannot check for updates !", "Failed to check for updates !\n%s" % repr(e)
+                                 .split("(")[0] + ": " + str(e))
+            return
 
         def download():
             webbrowser.open(update_result["version"]["latest"]["download"])
@@ -19,7 +26,7 @@ def open_settings(global_var, default_lang, settings_list, version_name, lang_li
             txt_to_config = default_lang[5].format(version_name,
                                                    update_result["version"]["latest"]["name"])
             btn_update2 = ttk.Button(settings_window, text=default_lang[6], command=download)
-            btn_update2.place(x=40, y=165)
+            btn_update2.place(x=320, y=165)
         else:
             txt_to_config = default_lang[9].format(version_name)
         update_txt.config(text=txt_to_config)
@@ -29,9 +36,10 @@ def open_settings(global_var, default_lang, settings_list, version_name, lang_li
         settings_window.destroy()
 
     def reset():
-        if messagebox.askyesnocancel("Reset save data", "You are about to delete save data.\nWARNING: THIS ACTION CANNOT BE"
-                                                     " UNDONE!\nAre you sure ?"):
-            nlib.save([0, 'nobody', 0], 'save.dat')
+        if messagebox.askyesnocancel("Reset save data",
+                                     "You are about to delete save data.\nWARNING: THIS ACTION CANNOT BE"
+                                     " UNDONE!\nAre you sure ?"):
+            nlib.save([0, "nobody", 0, 0, []], 'save.dat')
 
     global_var.set_value("is_settings_to_save", False)
     settings_window = tk.Tk()
@@ -76,7 +84,7 @@ def open_settings(global_var, default_lang, settings_list, version_name, lang_li
                                       onvalue=1, offvalue=0)
     enable_audio_ck.place(x=40, y=162)
     enable_fullscreen = ttk.Checkbutton(settings_window, text="Play in full screen (F11)", variable=var_2,
-                                      onvalue=True, offvalue=False)
+                                        onvalue=True, offvalue=False)
     enable_fullscreen.place(x=40, y=200)
     panel.pack()
     settings_window.lift()

@@ -1,9 +1,14 @@
 import os.path
+import tkinter
+import tkinter.messagebox
 from shutil import copyfile
 from importlib import import_module
 import pickle
 from os.path import isfile
 import nathlib as nlib
+
+version_name = "snapshot_014"  # DO NOT FORGET TO CHANGE MAIN CONSTANTS !!!
+version_number = 1
 
 nlib.start_logs("latest.log")
 nlib.log("Starting file manager ...", "info", "file_manager")
@@ -27,15 +32,61 @@ def new_settings():
     return setting_list  # will create new settings, return it, and save it.
 
 
-def overwrite_better_score(score, name, bziocoins):
-    nlib.save([score, name, bziocoins], 'save.dat')
+def overwrite_better_score(score, name, bziocoins, buy=0, item_list=None):
+    if item_list is None:
+        item_list = []
+    nlib.save([score, name, bziocoins, buy, item_list, version_name], 'save.dat')
+
+
+def update_save_data():
+    data = nlib.load("save.dat")
+    score = 0
+    try:
+        score = data[0]
+    except:
+        pass
+    name = "nobody"
+    try:
+        name = data[1]
+    except:
+        pass
+    bziocoins = 0
+    try:
+        bziocoins = data[2]
+    except:
+        pass
+    buy = 0
+    try:
+        buy = data[3]
+    except:
+        pass
+    item_list = []
+    try:
+        item_list = data[4]
+    except:
+        pass
+    nlib.save([score, name, bziocoins, buy, item_list, version_name], "save.dat")
 
 
 def get_better_score():
     try:
+        if nlib.load("save.dat")[-1] != version_name:
+            tk = tkinter.Tk()
+            tk.withdraw()
+            if tkinter.messagebox.askyesno("Update save data", "Your game is running version %s\n"
+                                                               "However, it seems your save data is from %s\n"
+                                                               "Do you want to try converting your save data ?\n"
+                                                               "A backup will be made, but\n"
+                                                               "Previous versions may not be able to load your save\n"
+                                                               "Proceed ?" % (version_name,
+                                                                              str(nlib.load("save.dat")[-1]))):
+                copyfile("save.dat", "backup_%s" % (str(nlib.load("save.dat")[-1])))
+                update_save_data()
+            else:
+                quit()
         return nlib.load('save.dat')
     except Exception as e:
-        nlib.log("Failed to read best score file : %s" % str(e), "error", "file_manager")
+        nlib.log("Failed to read save data : %s" % str(e), "error", "file_manager")
         return [0, "nobody", 0, 0, []]  # Best score, best player name, b coins, 0: Basic Swatter, 1: Swatter Pro 2:
         # B Ruler, and list containing List [0 : item id, 1 : count]
 

@@ -3,7 +3,7 @@ import nathlib as nlib
 import sys
 import time
 
-version_name = "snapshot_012"
+version_name = "snapshot_014"   # DO NOT FORGET TO CHANGE FILEMANAGER CONSTANTS !!!
 version_number = 1
 debug_mouse = False
 
