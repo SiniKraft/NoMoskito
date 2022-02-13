@@ -1,9 +1,11 @@
 import os
+import tkinter.messagebox
+
 import nathlib as nlib
 import sys
 import time
 
-version_name = "snapshot_014"   # DO NOT FORGET TO CHANGE FILEMANAGER CONSTANTS !!!
+version_name = "snapshot_014"  # DO NOT FORGET TO CHANGE FILEMANAGER CONSTANTS !!!
 version_number = 1
 debug_mouse = False
 
@@ -185,7 +187,7 @@ settings_btn_text = btn_font.render(default_lang[1], True, (153, 153, 0))
 font_a_text = font_a.render(default_lang[11], True, (153, 153, 0))
 
 
-def get_blaziocoins():
+def get_bziocoins():
     return get_better_score()[2]
 
 
@@ -202,7 +204,7 @@ class Var:
     def __init__(self):
         super(Var, self).__init__()
         self.change_fullscreen = False
-        self.blaziocoins = get_blaziocoins()
+        self.blaziocoins = get_bziocoins()
         self.last_mouse = (0, 0)
         self.is_settings_to_save = False
         self.IsGamePaused = False
@@ -481,7 +483,7 @@ class Swatter(pygame.sprite.Sprite):
         self.base_size_h = 602  # Swatter pro is 718
         self.size_w = self.base_size_w
         self.size_h = self.base_size_h
-        self.moskito_kill_radius = (90, 105)   # swatter pro is (108, 126)
+        self.moskito_kill_radius = (90, 105)  # swatter pro is (108, 126)
 
     def destroy_nearby_moskitos(self):
         self.rect.width = self.moskito_kill_radius[0]
@@ -606,6 +608,48 @@ def show_shop_btn_image(btn_type):
         screen.blit(shop_lamp, (1112, 526))
 
 
+def buy_item(btn_type):
+    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_WAIT)
+    article_name = ""  # Ensure var is defined
+    cost = 0
+    if btn_type == "shop_btn_blood_2":
+        cost = 100
+        article_name = "Small Blood Bag"
+    elif btn_type == "shop_btn_blood_3":
+        cost = 150
+        article_name = "Blood Bottle"
+    elif btn_type == "shop_btn_blood_4":
+        cost = 300
+        article_name = "Huge Blood Bag"
+    elif btn_type == "shop_btn_blood_5":
+        cost = 800
+        article_name = "Blood Infusion"
+    elif btn_type == "shop_btn_swatter":
+        cost = 1000
+        article_name = "Swatter Pro"
+    elif btn_type == "shop_btn_bzio":
+        cost = 10000
+        article_name = "Imposant Bzio Ruler"
+    elif btn_type == "shop_btn_heat_wave":
+        cost = 500
+        article_name = "Heat Wave"
+    elif btn_type == "shop_btn_spray":
+        cost = 500
+        article_name = "Anti Moskito Spray"
+    elif btn_type == "shop_btn_lamp":
+        cost = 750
+        article_name = "Anti Moskito Lamp"
+    _tk = tkinter.Tk()
+    _tk.withdraw()
+    _tk.iconbitmap("resources/icon.ico")
+    if tkinter.messagebox.askyesno("Confirm buying ?", "Are you sure you want to buy %s ?" % article_name):
+        if get_bziocoins() >= cost:
+            pass
+        else:
+            tkinter.messagebox.showerror("Not enough money !", "You do not have enough \u20BF Coins")
+    _tk.destroy()
+
+
 class NewButton(pygame.sprite.Sprite):
     def __init__(self, pos_min, pos_max, text, btn_type, env="Menu", font_size=30):
         super().__init__()
@@ -658,6 +702,11 @@ class NewButton(pygame.sprite.Sprite):
             moskito_spawn_handler.time_limit = 500
             global_var.chrono = 0
             global_var.latest_chrono = 0
+        elif self.btn_type == "shop_btn_blood_2" or self.btn_type == "shop_btn_blood_3" or self.btn_type == \
+                "shop_btn_blood_4" or self.btn_type == "shop_btn_blood_5" or self.btn_type == "shop_btn_swatter" \
+                or self.btn_type == "shop_btn_bzio" or self.btn_type == "shop_btn_heat_wave" or self.btn_type == \
+                "shop_btn_spray" or self.btn_type == "shop_btn_lamp":
+            buy_item(self.btn_type)
         pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
     def update(self):
