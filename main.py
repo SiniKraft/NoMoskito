@@ -77,6 +77,7 @@ from tkinter import simpledialog
 import pygame.gfxdraw  # necessary as pygame doesn't load it by default !
 from settings_window import open_settings
 import ptext
+import  operator
 
 # except ImportError:
 # print("[ERROR]: Failed to import modules !")
@@ -159,6 +160,14 @@ pygame.gfxdraw.rectangle(shop_bg, pygame.rect.Rect(2, 2, 1176, 656), (206, 237, 
 pygame.gfxdraw.box(shop_bg, pygame.rect.Rect(3, 3, 1174, 654), (235, 248, 165))
 pygame.gfxdraw.box(shop_bg, pygame.rect.Rect(3, 3, 1174, 50), (220, 242, 96))
 
+shop_btn_ids = {"shop_btn_blood_2": 0,
+                "shop_btn_blood_3": 1,
+                "shop_btn_blood_4": 2,
+                "shop_btn_blood_5": 3,
+                "shop_btn_heat_wave": 6,
+                "shop_btn_spray": 7,
+                "shop_btn_lamp": 8}
+
 sounds_moskitos_list = ["resources/sounds/Single_moskito_1.wav",
                         "resources/sounds/Single_moskito_2.wav",
                         "resources/sounds/Single_moskito_3.wav"]
@@ -191,20 +200,33 @@ def get_bziocoins():
     return get_better_score()[2]
 
 
-def save_blaziocoins(blaziocoins):
+def get_inventory():
     a = get_better_score()
-    overwrite_better_score(a[0], a[1], blaziocoins)
+    return [a[4], a[3]]
+
+
+def save_bziocoins(bziocoins):
+    a = get_better_score()
+    overwrite_better_score(a[0], a[1], bziocoins, a[3], a[4])
+
+
+def save_inventory(inv, buy):  # buy = which swatter you bought.
+    a = get_better_score()
+    overwrite_better_score(a[0], a[1], a[2], buy, inv)
 
 
 # definition du joueur
 BLOOD = 590
 
+shop_hovered_id = -1
+
 
 class Var:
     def __init__(self):
         super(Var, self).__init__()
+        self.inventory = []
         self.change_fullscreen = False
-        self.blaziocoins = get_bziocoins()
+        self.bziocoins = get_bziocoins()
         self.last_mouse = (0, 0)
         self.is_settings_to_save = False
         self.IsGamePaused = False
@@ -238,6 +260,7 @@ class Var:
 
 
 global_var = Var()
+global_var.inventory = get_inventory()[0]
 
 
 # class Player(pygame.sprite.Sprite):
@@ -401,6 +424,11 @@ def stop_sounds():
 
 
 def pass_to_menu():
+    global_var.click_delay = 338
+    swatter.isClicking = False
+    swatter.time_ani = 0
+    swatter.size_w = swatter.base_size_w
+    swatter.size_h = swatter.base_size_h
     global_var.isMenu = True
     pygame.mouse.set_visible(True)
 
@@ -612,42 +640,83 @@ def buy_item(btn_type):
     pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_WAIT)
     article_name = ""  # Ensure var is defined
     cost = 0
+    item_id = 0
+    conf_buy = True
     if btn_type == "shop_btn_blood_2":
         cost = 100
         article_name = "Small Blood Bag"
+        item_id = 0
     elif btn_type == "shop_btn_blood_3":
         cost = 150
         article_name = "Blood Bottle"
+        item_id = 1
     elif btn_type == "shop_btn_blood_4":
         cost = 300
         article_name = "Huge Blood Bag"
+        item_id = 2
     elif btn_type == "shop_btn_blood_5":
         cost = 800
         article_name = "Blood Infusion"
+        item_id = 3
     elif btn_type == "shop_btn_swatter":
         cost = 1000
         article_name = "Swatter Pro"
+        item_id = 4
     elif btn_type == "shop_btn_bzio":
         cost = 10000
         article_name = "Imposant Bzio Ruler"
+        item_id = 5
     elif btn_type == "shop_btn_heat_wave":
         cost = 500
         article_name = "Heat Wave"
+        item_id = 6
     elif btn_type == "shop_btn_spray":
         cost = 500
         article_name = "Anti Moskito Spray"
+        item_id = 7
     elif btn_type == "shop_btn_lamp":
         cost = 750
         article_name = "Anti Moskito Lamp"
+        item_id = 8
     _tk = tkinter.Tk()
     _tk.withdraw()
     _tk.iconbitmap("resources/icon.ico")
-    if tkinter.messagebox.askyesno("Confirm buying ?", "Are you sure you want to buy %s ?" % article_name):
-        if get_bziocoins() >= cost:
-            pass
+    if item_id == 4:
+        conf_buy = False
+        if get_inventory()[1] == 0:
+            conf_buy = True
+        elif get_inventory()[1] > 0:
+            tkinter.messagebox.showerror("You can't buy this item !", "You already have this !")
+    elif item_id == 5:
+        conf_buy = False
+        if get_inventory()[1] == 0:
+            tkinter.messagebox.showerror("You can't buy this item !", "You need the low-level swatter first !")
+        elif get_inventory()[1] == 1:
+            conf_buy = True
         else:
-            tkinter.messagebox.showerror("Not enough money !", "You do not have enough \u20BF Coins")
+            tkinter.messagebox.showerror("You can't buy this item !", "You already have this !")
+
+    if conf_buy:
+        if tkinter.messagebox.askyesno("Confirm buying ?", "Are you sure you want to buy %s ?" % article_name):
+            if get_bziocoins() >= cost:
+                save_bziocoins(get_bziocoins() - cost)
+                if not (item_id == 4 or item_id == 5):
+                    _inv = get_inventory()
+                    _inv[0].append(item_id)
+                    save_inventory(_inv[0], _inv[1])
+                else:
+                    _inv = get_inventory()
+                    if item_id == 4:
+                        _inv[1] = 1
+                    else:
+                        _inv[1] = 2
+                    save_inventory(_inv[0], _inv[1])
+                tkinter.messagebox.showinfo("Success !", "You have successfully bought this item.")
+            else:
+                tkinter.messagebox.showerror("Not enough money !", "You do not have enough Coins")
     _tk.destroy()
+    global_var.bziocoins = get_bziocoins()
+    global_var.inventory = get_inventory()[0]
 
 
 class NewButton(pygame.sprite.Sprite):
@@ -749,6 +818,7 @@ return_to_menu_btn = NewButton((490, 618), (790, 688), default_lang[17], "return
 
 
 def manage_buttons():
+    global shop_hovered_id
     _tmp = False
     if global_var.isMenu:
         current_env = "Menu"
@@ -760,9 +830,13 @@ def manage_buttons():
         current_env = "Final_Menu"
     else:
         current_env = ""
+    shop_hovered_id = -1
     for element in global_var.btn_hover_list:
         if element.isHovered and element.env == current_env:
             _tmp = True
+            if current_env == "Shop":
+                if element.btn_type in shop_btn_ids:
+                    shop_hovered_id = shop_btn_ids[element.btn_type]
     if _tmp:
         if not opaque >= 0:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
@@ -789,6 +863,7 @@ settings_btn.maxY = 492
 settings_btn.minX = 512
 settings_btn.minY = 436
 settings_btn.type = 'settings'
+pause_btn_list = []
 
 font_shop = pygame.font.Font("resources\\ComicSansMSM.ttf", 40).render(default_lang[10], True, (153, 153, 0))
 font_rect = font_shop.get_rect()
@@ -850,6 +925,7 @@ while continuer:
                         global_var.IsGamePaused = False
                         pygame.mouse.set_pos(global_var.last_mouse)
                         pygame.mouse.set_visible(False)
+                        list
                     elif not global_var.IsGamePaused:
                         try:
                             for moskito in moskito_spawn_handler.moskito_list:
@@ -940,16 +1016,17 @@ while continuer:
             int(window_x / 2) - _font_2.get_rect().centerx,
             int(window_y / 1.3) - _font_2.get_rect().centery))
         if not global_var.Final_verdict:
+            global_var.bziocoins = get_bziocoins()
             global_var.Final_verdict = True
             if get_final_score() > get_better_score()[0]:
                 root = tk.Tk()
                 root.withdraw()
                 show_popup()
                 overwrite_better_score(get_final_score(), str(simpledialog.askstring(
-                    default_lang[14], default_lang[15])), global_var.blaziocoins)
+                    default_lang[14], default_lang[15])), global_var.bziocoins)
                 root.destroy()
-            global_var.blaziocoins = global_var.blaziocoins + int(get_final_score() * 0.75)
-            save_blaziocoins(global_var.blaziocoins)
+            global_var.bziocoins = global_var.bziocoins + int(get_final_score() * 0.75)
+            save_bziocoins(global_var.bziocoins)
         return_to_menu_btn.update()
         manage_buttons()
     elif global_var.shop:
@@ -957,10 +1034,16 @@ while continuer:
         screen.blit(shop_bg, pygame.rect.Rect(50, 30, 1180, 660))
         screen.blit(font_shop, font_rect)
         font_shop_2 = pygame.font.Font("resources\\ComicSansMSM.ttf", 40).render("{0} \u20BF".format(
-            global_var.blaziocoins), True, (153, 153, 0))
+            global_var.bziocoins), True, (153, 153, 0))
         font_rect_2 = font_shop_2.get_rect()
         font_rect_2.center = (window_x / 1.3, 50)
         screen.blit(font_shop_2, font_rect_2)
+        if shop_hovered_id != -1:
+            font_hover_2 = pygame.font.Font("resources\\ComicSansMSM.ttf", 40).render("In bag : {0}".format(
+                operator.countOf(global_var.inventory, shop_hovered_id)), True, (153, 153, 0))
+            font_hrect_2 = font_hover_2.get_rect()
+            font_hrect_2.center = (window_x / 8, 50)
+            screen.blit(font_hover_2, font_hrect_2)
         close_shop_btn.update()
         for element in shop_btn_l:
             element.update()

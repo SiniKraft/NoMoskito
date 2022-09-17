@@ -87,8 +87,8 @@ def get_better_score():
         return nlib.load('save.dat')
     except Exception as e:
         nlib.log("Failed to read save data : %s" % str(e), "error", "file_manager")
-        return [0, "nobody", 0, 0, []]  # Best score, best player name, b coins, 0: Basic Swatter, 1: Swatter Pro 2:
-        # B Ruler, and list containing List [0 : item id, 1 : count]
+        return [0, "nobody", 0, 0, [], version_name]  # Best score, best player name, b coins, 0: Basic Swatter, 1: Swatter Pro 2:
+        # B Ruler, and list containing inv
 
 
 if isfile("settings.ini"):  # load the save
