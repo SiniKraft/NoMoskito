@@ -77,7 +77,7 @@ from tkinter import simpledialog
 import pygame.gfxdraw  # necessary as pygame doesn't load it by default !
 from settings_window import open_settings
 import ptext
-import  operator
+import operator
 
 # except ImportError:
 # print("[ERROR]: Failed to import modules !")
@@ -108,7 +108,7 @@ window_y = 720
 if not settings_list[3]:
     screen = pygame.display.set_mode((window_x, window_y))
 else:
-    screen = pygame.display.set_mode((window_x, window_y), pygame.FULLSCREEN)
+    screen = pygame.display.set_mode((window_x, window_y), pygame.FULLSCREEN | pygame.SCALED)
 pygame.display.set_caption("NoMoskito!")
 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 clock = pygame.time.Clock()
@@ -127,6 +127,7 @@ swatter_pro = pygame.image.load("resources/swatter_pro.png").convert_alpha()
 shop_swatter_pro = pygame.transform.scale(swatter_pro, (41, 275))
 bzio_ruler = pygame.image.load("resources/imposant_ruler.png").convert_alpha()
 shop_bzio_ruler = pygame.transform.scale(bzio_ruler, (128, 128))
+pause_bzio_ruler = pygame.transform.rotate(shop_bzio_ruler, 90)
 img_heat_wave = pygame.image.load("resources/hot.png").convert_alpha()
 shop_heat_wave = pygame.transform.scale(img_heat_wave, (17, 48))
 img_spray = pygame.image.load("resources/anti_moskito_spray.png").convert_alpha()
@@ -140,6 +141,7 @@ img_logo = pygame.image.load("resources/resource_4.png").convert_alpha()
 img_btn_normal = pygame.image.load("resources/resource_5.png").convert()
 img_btn_hovered = pygame.image.load("resources/resource_6.png").convert()
 img_swatter_1 = pygame.image.load("resources/resource_8.png").convert_alpha()
+pause_swatter_1 = pygame.transform.scale(img_swatter_1, (41, 275))
 dark_img = pygame.image.load("resources/dark.png").convert_alpha()
 init_img = pygame.image.load("resources/init.png").convert()
 img_pix_wait_bar = pygame.Surface((1, 13))
@@ -159,6 +161,7 @@ pygame.gfxdraw.rectangle(shop_bg, pygame.rect.Rect(1, 1, 1178, 658), (206, 237, 
 pygame.gfxdraw.rectangle(shop_bg, pygame.rect.Rect(2, 2, 1176, 656), (206, 237, 31))
 pygame.gfxdraw.box(shop_bg, pygame.rect.Rect(3, 3, 1174, 654), (235, 248, 165))
 pygame.gfxdraw.box(shop_bg, pygame.rect.Rect(3, 3, 1174, 50), (220, 242, 96))
+pause_bg = pygame.Surface((1280, 720))
 
 shop_btn_ids = {"shop_btn_blood_2": 0,
                 "shop_btn_blood_3": 1,
@@ -185,6 +188,8 @@ pygame.display.set_icon(img_icon)
 sprite_group = pygame.sprite.Group()
 
 isMenu = True
+
+pause_btn_list = []
 
 # fichier lang
 
@@ -817,6 +822,55 @@ shop_btn_l = [NewButton((87, 116), (432, 212), "Healers", "", "Shop"),
 return_to_menu_btn = NewButton((490, 618), (790, 688), default_lang[17], "return_to_menu", "Final_Menu")
 
 
+class PauseButton(pygame.sprite.Sprite):
+    def __init__(self, image: pygame.Surface, xy, _id: int):
+        super(PauseButton, self).__init__()
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.bigger_image = pygame.transform.scale(image, (self.rect.width + 10, self.rect.height + 10))
+        self.bigger_image_rect = self.bigger_image.get_rect()
+        self.rect.x, self.rect.y = xy
+        self.bigger_image_rect.x, self.bigger_image_rect.y = self.rect.x - 5, self.rect.y - 5
+        self.id = _id
+        pause_btn_list.append(self)
+
+    def on_click(self):
+        _tk = tkinter.Tk()
+        _tk.withdraw()
+        _tk.iconbitmap("resources/icon.ico")
+        tkinter.messagebox.askyesno("Confirm ?", "Do you really want to use this item ?\nThis action cannot be undone !")
+        _tk.destroy()
+
+    def update(self):
+        _x, _y = pygame.mouse.get_pos()
+        base_x = self.rect.x
+        x_penal = 0
+        if self.id == 2:
+            base_x = 390
+            x_penal = 40
+        elif self.id == 9:
+            base_x = 998
+            x_penal = 92
+        if base_x < _x < base_x + self.rect.width - x_penal and self.rect.y < _y < self.rect.y + self.rect.height:
+            screen.blit(self.bigger_image, self.bigger_image_rect)
+            if pygame.mouse.get_pressed()[0]:
+                self.on_click()
+        else:
+            screen.blit(self.image, self.rect)
+
+
+PauseButton(shop_blood_bag, (208, 570), 0)
+PauseButton(shop_blood_bottle, (288, 550), 1)
+PauseButton(shop_blood_barrel, (368, 548), 2)
+PauseButton(shop_blood_infusion, (453, 546), 3)
+PauseButton(shop_heat_wave, (630, 580), 4)
+PauseButton(shop_spray, (684, 546), 5)
+PauseButton(shop_lamp, (752, 542), 6)
+PauseButton(pause_swatter_1, (855, 395), 7)
+PauseButton(shop_swatter_pro, (926, 395), 8)
+PauseButton(pause_bzio_ruler, (949, 533), 9)
+
+
 def manage_buttons():
     global shop_hovered_id
     _tmp = False
@@ -863,7 +917,6 @@ settings_btn.maxY = 492
 settings_btn.minX = 512
 settings_btn.minY = 436
 settings_btn.type = 'settings'
-pause_btn_list = []
 
 font_shop = pygame.font.Font("resources\\ComicSansMSM.ttf", 40).render(default_lang[10], True, (153, 153, 0))
 font_rect = font_shop.get_rect()
@@ -925,7 +978,6 @@ while continuer:
                         global_var.IsGamePaused = False
                         pygame.mouse.set_pos(global_var.last_mouse)
                         pygame.mouse.set_visible(False)
-                        list
                     elif not global_var.IsGamePaused:
                         try:
                             for moskito in moskito_spawn_handler.moskito_list:
@@ -935,6 +987,11 @@ while continuer:
                         global_var.last_mouse = pygame.mouse.get_pos()
                         global_var.IsGamePaused = True
                         pygame.mouse.set_visible(True)
+                        inv = get_inventory()[0]
+                        inv_counts = list(map(lambda letter: {letter: inv.count(letter)}, set(inv)))
+                        inv_counts = dict(j for i in inv_counts for j in i.items())
+                        pause_bg = screen.copy()
+                        # Provide inv_counts a dict containing number of items with this form : {0: 4, 8: 3, ...}
                 else:
                     continuer = False
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -988,13 +1045,17 @@ while continuer:
             screen.blit(pygame.font.SysFont("Comic Sans MS", 30).render("Esc: Pause game", True, (0, 0, 0)), (850,
                                                                                                               0))
             global_var.chrono = global_var.chrono + t
-        else:
+        else:  # it's pause
+            screen.blit(pause_bg, (0, 0))
             # _tmp_font = pygame.font.Font("resources\\ComicSansMSM.ttf", 45).render("Game Paused (Press Escape to resume)\nPress Space to quit",
             # True, (153, 153, 0))
             _tmp_font = ptext.getsurf("Game Paused (Press Escape to resume)\nPress Space to quit", color=(153, 153, 0),
                                       fontname='resources\\ComicSansMSM.ttf', fontsize=45)
             _tmp_rect = _tmp_font.get_rect()
             screen.blit(_tmp_font, ((window_x / 2 - _tmp_rect.centerx), (window_y / 2 - _tmp_rect.centery)))
+            for el in pause_btn_list:
+                el.update()
+
     elif global_var.Final_Menu:
         screen.blit(font_a_text, (
             int(window_x / 2) - font_a_text.get_rect().centerx, int(window_y / 3) - font_a_text.get_rect().centery))
