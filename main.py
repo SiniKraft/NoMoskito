@@ -5,15 +5,26 @@ import nathlib as nlib
 import sys
 import time
 
-version_name = "snapshot_014"  # DO NOT FORGET TO CHANGE FILEMANAGER CONSTANTS !!!
+version_name = "snapshot_015"  # DO NOT FORGET TO CHANGE FILEMANAGER CONSTANTS !!!
 version_number = 1
+
 debug_mouse = False
 
-try:
-    os.remove('latest.log')
-except Exception as e:
-    nlib.log("Couldn't remove latest.log : {}".format(str(e)), "warn")
-nlib.start_logs("latest.log")
+if os.path.isfile("latest.log"):
+    try:
+        os.remove('latest.log')
+    except Exception as e:
+        nlib.log("Couldn't remove latest.log : {}".format(str(e)), "warn")
+if not os.path.isfile("enable_logs.txt"):
+    with open("enable_logs.txt", "w") as file:
+        file.write("# Enable logging ? \"yes\" or \"no\"\nDefaults to \"no\"to avoid unnecessary log file rewriting.\n"
+                   "You should let this parameter to \"no\" unless you have an error.\nno")
+enable_logs = "latest.log"
+with open("enable_logs.txt", "r") as file:
+    if file.readlines()[3].startswith("no"):
+        enable_logs = None
+
+nlib.start_logs(enable_logs)
 nlib.log("Launching game version {0} ...".format(version_name), "info")
 
 
@@ -210,6 +221,19 @@ def get_inventory():
     return [a[4], a[3]]
 
 
+def remove_item_from_inventory(inv_list, item_id: int):  # remove 1 item and return the result
+    tmp_list = []
+    found = False
+    for _i in inv_list:
+        tmp_list.append(_i)  # simple way to copy two lists in python :/
+    for item in range(0, len(inv_list)):
+        if inv_list[item] == item_id:
+            if not found:
+                tmp_list.pop(item)
+                found = True
+    return tmp_list
+
+
 def save_bziocoins(bziocoins):
     a = get_better_score()
     overwrite_better_score(a[0], a[1], bziocoins, a[3], a[4])
@@ -221,7 +245,7 @@ def save_inventory(inv, buy):  # buy = which swatter you bought.
 
 
 # definition du joueur
-BLOOD = 590
+BLOOD = 600
 
 shop_hovered_id = -1
 
@@ -476,7 +500,7 @@ class BloodBar(pygame.sprite.Sprite):
 
     def update(self):
         for f in range(0, int(global_var.blood)):
-            screen.blit(self.pix_image, (self.rect.x + 3, self.rect.y + 592 - f))
+            screen.blit(self.pix_image, (self.rect.x + 3, self.rect.y + 599 - f))
         screen.blit(self.image, self.rect)
         if global_var.blood < 0:
             stop_sounds()
@@ -835,20 +859,39 @@ class PauseButton(pygame.sprite.Sprite):
         pause_btn_list.append(self)
 
     def on_click(self):
+        allowed = True
         _tk = tkinter.Tk()
         _tk.withdraw()
         _tk.iconbitmap("resources/icon.ico")
-        tkinter.messagebox.askyesno("Confirm ?", "Do you really want to use this item ?\nThis action cannot be undone !")
+        if self.id != 9 and self.id != 4 and self.id != 5:
+            if self.id in get_inventory()[0]:  # check if item is present in inventory
+                tkinter.messagebox.askyesno("Confirm ?", "Do you really want to use this item ?\nThis action cannot be "
+                                                         "undone !")
+            else:  # or deny use !
+                tkinter.messagebox.showerror("Not owned !", "You do not have this item.\nBuy it in the shop first !")
+                allowed = False
+        else:
+            tkinter.messagebox.showinfo("Success !", "Your weapon has been successfully changed !")
         _tk.destroy()
+        if allowed:
+            if self.id == 0:
+                _inv = get_inventory()
+                _inv[0] = remove_item_from_inventory(_inv[0], 0)
+                save_inventory(_inv[0], _inv[1])
+                global_var.inventory = _inv[0]
+                global_var.blood += 75
+                if global_var.blood > BLOOD:
+                    global_var.blood = BLOOD
 
     def update(self):
+        count = operator.countOf(global_var.inventory, self.id)
         _x, _y = pygame.mouse.get_pos()
         base_x = self.rect.x
         x_penal = 0
         if self.id == 2:
             base_x = 390
             x_penal = 40
-        elif self.id == 9:
+        elif self.id == 5:
             base_x = 998
             x_penal = 92
         if base_x < _x < base_x + self.rect.width - x_penal and self.rect.y < _y < self.rect.y + self.rect.height:
@@ -857,18 +900,25 @@ class PauseButton(pygame.sprite.Sprite):
                 self.on_click()
         else:
             screen.blit(self.image, self.rect)
+        if count != 0:
+            _x_decal, _y_decal = (5, 5)
+            if self.id == 1:
+                _x_decal, _y_decal = (15, 15)
+            screen.blit(pygame.font.Font("resources\\ComicSansMSM.ttf", 30).render(str(count), True, (0, 0, 0)), (
+                self.rect.x + self.rect.width - _x_decal, self.rect.y + self.rect.height - _y_decal
+            ))
 
 
 PauseButton(shop_blood_bag, (208, 570), 0)
 PauseButton(shop_blood_bottle, (288, 550), 1)
 PauseButton(shop_blood_barrel, (368, 548), 2)
 PauseButton(shop_blood_infusion, (453, 546), 3)
-PauseButton(shop_heat_wave, (630, 580), 4)
-PauseButton(shop_spray, (684, 546), 5)
-PauseButton(shop_lamp, (752, 542), 6)
-PauseButton(pause_swatter_1, (855, 395), 7)
-PauseButton(shop_swatter_pro, (926, 395), 8)
-PauseButton(pause_bzio_ruler, (949, 533), 9)
+PauseButton(shop_heat_wave, (630, 580), 6)
+PauseButton(shop_spray, (684, 546), 7)
+PauseButton(shop_lamp, (752, 542), 8)
+PauseButton(pause_swatter_1, (855, 395), 9)
+PauseButton(shop_swatter_pro, (926, 395), 4)
+PauseButton(pause_bzio_ruler, (949, 533), 5)
 
 
 def manage_buttons():

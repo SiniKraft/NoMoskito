@@ -7,7 +7,7 @@ import pickle
 from os.path import isfile
 import nathlib as nlib
 
-version_name = "snapshot_014"  # DO NOT FORGET TO CHANGE MAIN CONSTANTS !!!
+version_name = "snapshot_015"
 version_number = 1
 
 nlib.start_logs("latest.log")
@@ -80,7 +80,7 @@ def get_better_score():
                                                                "Previous versions may not be able to load your save\n"
                                                                "Proceed ?" % (version_name,
                                                                               str(nlib.load("save.dat")[-1]))):
-                copyfile("save.dat", "backup_%s" % (str(nlib.load("save.dat")[-1])))
+                copyfile("save.dat", "backup_%s.dat" % (str(nlib.load("save.dat")[-1])))
                 update_save_data()
             else:
                 quit()
