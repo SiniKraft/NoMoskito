@@ -72,6 +72,7 @@ def get_better_score():
     try:
         if nlib.load("save.dat")[-1] != version_name:
             tk = tkinter.Tk()
+            tk.attributes("-topmost", True)
             tk.withdraw()
             if tkinter.messagebox.askyesno("Update save data", "Your game is running version %s\n"
                                                                "However, it seems your save data is from %s\n"

@@ -32,6 +32,7 @@ def exception_handler(type, value, traceback):
     nlib.log("{0}: {1}".format(repr(value).split("(")[0], value), "critical", 'main')
     from tkinter import Tk, messagebox
     root = Tk()
+    root.attributes("-topmost", True)
     root.withdraw()
     messagebox.showerror("An error occurred", "{}: {}".format(repr(value).split("(")[0], value))
     root.destroy()
@@ -123,7 +124,7 @@ else:
 pygame.display.set_caption("NoMoskito!")
 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 clock = pygame.time.Clock()
-FPS = 60
+FPS = 60  # yeah, really !
 
 # ressources à charger
 shop_blood_bag = pygame.image.load("resources/blood_bag.png").convert_alpha()
@@ -322,11 +323,11 @@ class MoskitoSpawnHandler:
     def __init__(self):
         super(MoskitoSpawnHandler, self).__init__()
         self.time_spent = 0
-        self.time_limit = 500
+        self.time_limit = 600
         self.moskito_list = []
 
     def update(self):
-        self.time_spent = self.time_spent + 1
+        self.time_spent = self.time_spent + 4
         _tmp = 1
         if global_var.blood < 295:
             _tmp = 2
@@ -338,7 +339,7 @@ class MoskitoSpawnHandler:
             self.time_spent = 0
             for moskito in range(0, random.randint(1, _tmp)):
                 self.moskito_list.append(Moskito())
-            self.time_limit = self.time_limit - (self.time_limit / 75)
+            self.time_limit = self.time_limit - (self.time_limit / 85)
         for y in range(0, len(self.moskito_list)):
             self.moskito_list[y].update()
 
@@ -375,13 +376,13 @@ class Moskito(pygame.sprite.Sprite):
     def shiver(self):  # = trembler
         a = random.randint(1, 4)
         if a == 1:
-            self.rect.x = self.rect.x + 1
+            self.rect.x = self.rect.x + 2
         elif a == 2:
-            self.rect.x = self.rect.x - 1
+            self.rect.x = self.rect.x - 2
         elif a == 3:
-            self.rect.y = self.rect.y + 1
+            self.rect.y = self.rect.y + 2
         elif a == 4:
-            self.rect.y = self.rect.y - 1
+            self.rect.y = self.rect.y - 2
 
     def manage_ai_task(self):
         if self.ai_task_list == {}:
@@ -392,7 +393,7 @@ class Moskito(pygame.sprite.Sprite):
             if random.randint(0, 1) == 0:
                 _tmp_b = -1
             self.ai_task_list = {
-                'movement': {'x': random.randint(0, 10) * _tmp_a, 'y': random.randint(0, 10) * _tmp_b,
+                'movement': {'x': random.randint(0, 10) * _tmp_a * 4, 'y': random.randint(0, 10) * _tmp_b * 4,
                              'time': 0},
                 'down_and_up': {'x': 0, 'y': 0, 'direction': 'up', 'time': 0}
             }
@@ -438,7 +439,7 @@ class Moskito(pygame.sprite.Sprite):
             self.shiver()
             self.manage_ai_task()
             self.rect.move_ip(*self.velocity)
-            global_var.blood = global_var.blood - 0.05
+            global_var.blood = global_var.blood - 0.2
             screen.blit(self.image, self.rect)
             if global_var.enable_sound:
                 self.manage_sound()
@@ -483,7 +484,7 @@ class WaitBar(pygame.sprite.Sprite):
             global_var.can_click = True
         if not global_var.can_click:
             # global_var.click_delay = global_var.click_delay + (global_var.click_rate / 2)
-            global_var.click_delay = global_var.click_delay + 1.5  # (388 / time_ * 0.03)
+            global_var.click_delay = global_var.click_delay + 5  # (388 / time_ * 0.03)
         for f in range(0, int(global_var.click_delay)):
             screen.blit(self.pix_image, (self.rect.x + 1 + f, self.rect.y + 1))
         screen.blit(self.image, self.rect)
@@ -502,6 +503,8 @@ class BloodBar(pygame.sprite.Sprite):
         for f in range(0, int(global_var.blood)):
             screen.blit(self.pix_image, (self.rect.x + 3, self.rect.y + 599 - f))
         screen.blit(self.image, self.rect)
+        screen.blit(pygame.font.Font("resources\\ComicSansMSM.ttf", 26).render(str(round(global_var.blood / 100.0, 1))
+                                                                               + "L", True, (210, 0, 0)), (1225, 50))
         if global_var.blood < 0:
             stop_sounds()
             global_var.Playing = False
@@ -557,15 +560,15 @@ class Swatter(pygame.sprite.Sprite):
     def update(self):
         x, y = pygame.mouse.get_pos()
         if self.isClicking:
-            self.time_ani = self.time_ani + 1
+            self.time_ani = self.time_ani + 4
             if self.time_ani < 50:
-                self.size_w = self.size_w - 1
-                self.size_h = self.size_h - 3
+                self.size_w = self.size_w - 4
+                self.size_h = self.size_h - 12
                 self.image = pygame.transform.scale(self.base_image, (self.size_w, self.size_h))
                 self.update_rect()
             elif self.time_ani < 100:
-                self.size_w = self.size_w + 1
-                self.size_h = self.size_h + 3
+                self.size_w = self.size_w + 4
+                self.size_h = self.size_h + 12
                 self.image = pygame.transform.scale(self.base_image, (self.size_w, self.size_h))
                 self.update_rect()
             else:
@@ -708,6 +711,7 @@ def buy_item(btn_type):
         article_name = "Anti Moskito Lamp"
         item_id = 8
     _tk = tkinter.Tk()
+    _tk.attributes("-topmost", True)
     _tk.withdraw()
     _tk.iconbitmap("resources/icon.ico")
     if item_id == 4:
@@ -794,10 +798,10 @@ class NewButton(pygame.sprite.Sprite):
             global_var.Final_Menu = False
             global_var.Final_verdict = False
             moskito_spawn_handler.moskito_list = []
-            global_var.blood = 590
+            global_var.blood = BLOOD
             global_var.moskitos_killed = 0
             moskito_spawn_handler.time_spent = 0
-            moskito_spawn_handler.time_limit = 500
+            moskito_spawn_handler.time_limit = 600
             global_var.chrono = 0
             global_var.latest_chrono = 0
         elif self.btn_type == "shop_btn_blood_2" or self.btn_type == "shop_btn_blood_3" or self.btn_type == \
@@ -859,29 +863,39 @@ class PauseButton(pygame.sprite.Sprite):
         pause_btn_list.append(self)
 
     def on_click(self):
+        print(self.id)
         allowed = True
         _tk = tkinter.Tk()
+        _tk.attributes("-topmost", True)
         _tk.withdraw()
         _tk.iconbitmap("resources/icon.ico")
         if self.id != 9 and self.id != 4 and self.id != 5:
             if self.id in get_inventory()[0]:  # check if item is present in inventory
-                tkinter.messagebox.askyesno("Confirm ?", "Do you really want to use this item ?\nThis action cannot be "
-                                                         "undone !")
+                allowed = tkinter.messagebox.askyesno("Confirm ?", "Do you really want to use this item ?\nThis action "
+                                                                   "cannot be undone !")
             else:  # or deny use !
                 tkinter.messagebox.showerror("Not owned !", "You do not have this item.\nBuy it in the shop first !")
                 allowed = False
         else:
+            allowed = False
             tkinter.messagebox.showinfo("Success !", "Your weapon has been successfully changed !")
         _tk.destroy()
         if allowed:
+            _inv = get_inventory()
+            _inv[0] = remove_item_from_inventory(_inv[0], self.id)
+            save_inventory(_inv[0], _inv[1])
+            global_var.inventory = _inv[0]
             if self.id == 0:
-                _inv = get_inventory()
-                _inv[0] = remove_item_from_inventory(_inv[0], 0)
-                save_inventory(_inv[0], _inv[1])
-                global_var.inventory = _inv[0]
                 global_var.blood += 75
-                if global_var.blood > BLOOD:
-                    global_var.blood = BLOOD
+            elif self.id == 1:
+                global_var.blood += 150
+            elif self.id == 2:
+                global_var.blood += 400
+            elif self.id == 3:
+                blood_infusion = 300
+
+            if global_var.blood > BLOOD:
+                global_var.blood = BLOOD
 
     def update(self):
         count = operator.countOf(global_var.inventory, self.id)
@@ -992,7 +1006,7 @@ def calculate_distance(coord1, coord2, is_pygame_rect=True):
 continuer = True
 playBtnIsClicked = False
 while continuer:
-    clock.tick(250)
+    clock.tick(FPS)
     t = clock.get_time()
     if global_var.isMenu:
         global_var.Playing = False
@@ -1097,8 +1111,6 @@ while continuer:
             global_var.chrono = global_var.chrono + t
         else:  # it's pause
             screen.blit(pause_bg, (0, 0))
-            # _tmp_font = pygame.font.Font("resources\\ComicSansMSM.ttf", 45).render("Game Paused (Press Escape to resume)\nPress Space to quit",
-            # True, (153, 153, 0))
             _tmp_font = ptext.getsurf("Game Paused (Press Escape to resume)\nPress Space to quit", color=(153, 153, 0),
                                       fontname='resources\\ComicSansMSM.ttf', fontsize=45)
             _tmp_rect = _tmp_font.get_rect()
@@ -1131,6 +1143,7 @@ while continuer:
             global_var.Final_verdict = True
             if get_final_score() > get_better_score()[0]:
                 root = tk.Tk()
+                root.attributes("-topmost", True)
                 root.withdraw()
                 show_popup()
                 overwrite_better_score(get_final_score(), str(simpledialog.askstring(
@@ -1170,7 +1183,7 @@ while continuer:
             init_img.set_alpha(opaque)
         screen.blit(init_img, (0, 0))
         pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-        opaque = opaque - 1.5
+        opaque = opaque - 6
     pygame.display.update()
 pygame.quit()
 stop_sounds()
