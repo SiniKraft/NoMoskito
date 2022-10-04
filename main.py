@@ -247,6 +247,9 @@ def save_inventory(inv, buy):  # buy = which swatter you bought.
 
 # definition du joueur
 BLOOD = 600
+blood_infusion = 0
+blood_infusion_total = 0
+blood_factor = 0
 
 shop_hovered_id = -1
 
@@ -595,7 +598,7 @@ class Button(pygame.sprite.Sprite):
         super().__init__()
         self.env = "Menu"
         self.image = img_btn_normal
-        self.rect = self.image.get_rect()  # Adapte le taille du personnage a la taille de l'image.
+        self.rect = self.image.get_rect()  # Adapte la taille du personnage a la taille de l'image.
         self.velocity = [0, 0]
         self.rect.x = int(window_x / 2.5)
         self.rect.y = int(window_y / 2)
@@ -863,6 +866,9 @@ class PauseButton(pygame.sprite.Sprite):
         pause_btn_list.append(self)
 
     def on_click(self):
+        global blood_infusion
+        global blood_infusion_total
+        global blood_factor
         print(self.id)
         allowed = True
         _tk = tkinter.Tk()
@@ -892,7 +898,9 @@ class PauseButton(pygame.sprite.Sprite):
             elif self.id == 2:
                 global_var.blood += 400
             elif self.id == 3:
-                blood_infusion = 300
+                blood_infusion = 1800  # time
+                blood_infusion_total = 1800
+                blood_factor = 0.417
 
             if global_var.blood > BLOOD:
                 global_var.blood = BLOOD
@@ -1102,12 +1110,18 @@ while continuer:
     elif global_var.Playing:
         # When it's space
         if not global_var.IsGamePaused:
+            if blood_infusion != 0:
+                blood_infusion = blood_infusion - 1
+                global_var.blood = global_var.blood + blood_factor
+                if global_var.blood > BLOOD:
+                    global_var.blood = BLOOD
+                screen.blit(pygame.font.Font('resources\\ComicSansMSM.ttf', 30).render("%s%%" % str(int(blood_infusion / blood_infusion_total * 100)), True, (255, 0, 0)), (1200, 0))
             moskito_spawn_handler.update()
             swatter.update()
             wait_bar.update()
             blood_bar.update()
-            screen.blit(pygame.font.SysFont("Comic Sans MS", 30).render("Esc: Pause game", True, (0, 0, 0)), (850,
-                                                                                                              0))
+            screen.blit(pygame.font.Font('resources\\ComicSansMSM.ttf', 30).render("Esc: Pause game", True, (0, 0, 0)),
+                        (850, 0))
             global_var.chrono = global_var.chrono + t
         else:  # it's pause
             screen.blit(pause_bg, (0, 0))
