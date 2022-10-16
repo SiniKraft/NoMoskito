@@ -195,9 +195,13 @@ correction_angle = 90
 
 opaque = 1055
 
+spray_sound_obj = pygame.mixer.Sound("resources/sounds/Anti_Moskito_Spray.wav")
+
 pygame.display.set_icon(img_icon)
 
 sprite_group = pygame.sprite.Group()
+
+anti_moskito_spray = 0
 
 isMenu = True
 
@@ -844,7 +848,7 @@ shop_btn_l = [NewButton((87, 116), (432, 212), "Healers", "", "Shop"),
               NewButton((837, 116), (1182, 231), "Satisfaction tools", "", "Shop"),
               NewButton((837, 251), (1182, 367), "Heat wave (-25% moskitos \nspawning during this game)\n500 \u20BF",
                         "shop_btn_heat_wave", "Shop", 25),
-              NewButton((837, 387), (1182, 502), "Anti moskito spray (sus)\n(Kill all moskitos during 10s)\n500 \u20BF",
+              NewButton((837, 387), (1182, 502), "Anti moskito spray (sus)\n(Kill all moskitos during 2s)\n500 \u20BF",
                         "shop_btn_spray", "Shop", 25),
               NewButton((837, 522), (1182, 636),
                         "Anti moskito lamp (Slow down\nmoskito speed by 70% during 30s)\n750 \u20BF",
@@ -869,6 +873,7 @@ class PauseButton(pygame.sprite.Sprite):
         global blood_infusion
         global blood_infusion_total
         global blood_factor
+        global anti_moskito_spray
         print(self.id)
         allowed = True
         _tk = tkinter.Tk()
@@ -901,6 +906,8 @@ class PauseButton(pygame.sprite.Sprite):
                 blood_infusion = 1800  # time
                 blood_infusion_total = 1800
                 blood_factor = 0.417
+            elif self.id == 7:
+                anti_moskito_spray = 180
 
             if global_var.blood > BLOOD:
                 global_var.blood = BLOOD
@@ -1050,6 +1057,8 @@ while continuer:
                         global_var.IsGamePaused = False
                         pygame.mouse.set_pos(global_var.last_mouse)
                         pygame.mouse.set_visible(False)
+                        if anti_moskito_spray > 0:
+                            spray_sound_obj.play(0)
                     elif not global_var.IsGamePaused:
                         try:
                             for moskito in moskito_spawn_handler.moskito_list:
@@ -1108,7 +1117,6 @@ while continuer:
         screen.blit(img_logo, (int(window_x / 5.2), int(window_y / 6)))  # logo
 
     elif global_var.Playing:
-        # When it's space
         if not global_var.IsGamePaused:
             if blood_infusion != 0:
                 blood_infusion = blood_infusion - 1
@@ -1123,6 +1131,10 @@ while continuer:
             screen.blit(pygame.font.Font('resources\\ComicSansMSM.ttf', 30).render("Esc: Pause game", True, (0, 0, 0)),
                         (850, 0))
             global_var.chrono = global_var.chrono + t
+            if anti_moskito_spray > 0:
+                anti_moskito_spray -= 1
+                for moskito in moskito_spawn_handler.moskito_list:
+                    moskito.destroy()
         else:  # it's pause
             screen.blit(pause_bg, (0, 0))
             _tmp_font = ptext.getsurf("Game Paused (Press Escape to resume)\nPress Space to quit", color=(153, 153, 0),
