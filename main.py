@@ -202,6 +202,7 @@ pygame.display.set_icon(img_icon)
 sprite_group = pygame.sprite.Group()
 
 anti_moskito_spray = 0
+moskito_lamp_time = 0
 
 isMenu = True
 
@@ -325,6 +326,8 @@ global_var.inventory = get_inventory()[0]
 #
 #     def update(self, angle_in):
 #         self.walk_with_degrees(angle_in, 1)
+FPS_COUNT = 0
+
 
 class MoskitoSpawnHandler:
     def __init__(self):
@@ -347,8 +350,8 @@ class MoskitoSpawnHandler:
             for moskito in range(0, random.randint(1, _tmp)):
                 self.moskito_list.append(Moskito())
             self.time_limit = self.time_limit - (self.time_limit / 85)
-        for y in range(0, len(self.moskito_list)):
-            self.moskito_list[y].update()
+        for msk in self.moskito_list:
+            msk.update()
 
 
 class Moskito(pygame.sprite.Sprite):
@@ -441,11 +444,20 @@ class Moskito(pygame.sprite.Sprite):
                 self.ai_task_list['movement']['y'] = self.ai_task_list['movement']['y'] * -1
 
     def update(self):  # Moskito AI
+        global FPS_COUNT
+        global moskito_lamp_time
         if not self.isDestroyed:
             self.limit_checker()
             self.shiver()
             self.manage_ai_task()
-            self.rect.move_ip(*self.velocity)
+            if moskito_lamp_time > 0:
+                if FPS_COUNT == 3:
+                    FPS_COUNT = 0
+                    self.rect.move_ip(*self.velocity)
+                else:
+                    FPS_COUNT = FPS_COUNT + 1
+            else:
+                self.rect.move_ip(*self.velocity)
             global_var.blood = global_var.blood - 0.2
             screen.blit(self.image, self.rect)
             if global_var.enable_sound:
@@ -874,6 +886,8 @@ class PauseButton(pygame.sprite.Sprite):
         global blood_infusion_total
         global blood_factor
         global anti_moskito_spray
+        global moskito_lamp_time
+        global FPS
         print(self.id)
         allowed = True
         _tk = tkinter.Tk()
@@ -908,7 +922,8 @@ class PauseButton(pygame.sprite.Sprite):
                 blood_factor = 0.417
             elif self.id == 7:
                 anti_moskito_spray = 180
-
+            elif self.id == 8:
+                moskito_lamp_time = 1800
             if global_var.blood > BLOOD:
                 global_var.blood = BLOOD
 
@@ -1057,7 +1072,7 @@ while continuer:
                         global_var.IsGamePaused = False
                         pygame.mouse.set_pos(global_var.last_mouse)
                         pygame.mouse.set_visible(False)
-                        if anti_moskito_spray > 0:
+                        if anti_moskito_spray == 180:
                             spray_sound_obj.play(0)
                     elif not global_var.IsGamePaused:
                         try:
@@ -1123,7 +1138,13 @@ while continuer:
                 global_var.blood = global_var.blood + blood_factor
                 if global_var.blood > BLOOD:
                     global_var.blood = BLOOD
-                screen.blit(pygame.font.Font('resources\\ComicSansMSM.ttf', 30).render("%s%%" % str(int(blood_infusion / blood_infusion_total * 100)), True, (255, 0, 0)), (1200, 0))
+                screen.blit(pygame.font.Font('resources\\ComicSansMSM.ttf', 30).render(
+                    "%s%%" % str(int(blood_infusion / blood_infusion_total * 100)), True, (255, 0, 0)), (1200, 0))
+            if moskito_lamp_time > 0:
+                moskito_lamp_time = moskito_lamp_time - 1
+                screen.blit(shop_lamp, (10, 10))
+                screen.blit(pygame.font.Font('resources\\ComicSansMSM.ttf', 25).render(
+                    "%ss" % str(int(moskito_lamp_time / 60)), True, (0, 0, 0)), (25, 45))
             moskito_spawn_handler.update()
             swatter.update()
             wait_bar.update()
