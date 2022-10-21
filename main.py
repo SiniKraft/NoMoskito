@@ -203,6 +203,7 @@ sprite_group = pygame.sprite.Group()
 
 anti_moskito_spray = 0
 moskito_lamp_time = 0
+is_heat_wave = False
 
 isMenu = True
 
@@ -345,6 +346,10 @@ class MoskitoSpawnHandler:
             _tmp = 3
         if global_var.blood < 147:
             _tmp = 4
+        if global_var.blood < 196 and is_heat_wave:
+            _tmp = 2
+        if global_var.blood < 147 and is_heat_wave:
+            _tmp = 3
         if self.time_spent > self.time_limit:
             self.time_spent = 0
             for moskito in range(0, random.randint(1, _tmp)):
@@ -486,6 +491,7 @@ def pass_to_playing():
     global_var.Playing = True
     pygame.mouse.set_visible(False)
     pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+    is_heat_wave = False
 
 
 class WaitBar(pygame.sprite.Sprite):
@@ -887,6 +893,7 @@ class PauseButton(pygame.sprite.Sprite):
         global blood_factor
         global anti_moskito_spray
         global moskito_lamp_time
+        global is_heat_wave
         global FPS
         print(self.id)
         allowed = True
@@ -920,6 +927,8 @@ class PauseButton(pygame.sprite.Sprite):
                 blood_infusion = 1800  # time
                 blood_infusion_total = 1800
                 blood_factor = 0.417
+            elif self.id == 6:
+                is_heat_wave = True
             elif self.id == 7:
                 anti_moskito_spray = 180
             elif self.id == 8:
@@ -1064,7 +1073,8 @@ while continuer:
                     if global_var.IsGamePaused:
                         try:
                             for moskito in moskito_spawn_handler.moskito_list:
-                                moskito.play_obj.play(-1)
+                                if not moskito.isDestroyed:
+                                    moskito.play_obj.play(-1)
                         except Exception as e:
                             nlib.log(str(e), "warn")
                         pygame.mouse.set_pos(global_var.last_mouse)
@@ -1145,6 +1155,8 @@ while continuer:
                 screen.blit(shop_lamp, (10, 10))
                 screen.blit(pygame.font.Font('resources\\ComicSansMSM.ttf', 25).render(
                     "%ss" % str(int(moskito_lamp_time / 60)), True, (0, 0, 0)), (25, 45))
+            if is_heat_wave:
+                screen.blit(shop_heat_wave, (15, 658))
             moskito_spawn_handler.update()
             swatter.update()
             wait_bar.update()
@@ -1188,6 +1200,7 @@ while continuer:
         if not global_var.Final_verdict:
             global_var.bziocoins = get_bziocoins()
             global_var.Final_verdict = True
+            is_heat_wave = False
             if get_final_score() > get_better_score()[0]:
                 root = tk.Tk()
                 root.attributes("-topmost", True)
