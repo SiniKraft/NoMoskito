@@ -28,14 +28,14 @@ nlib.start_logs(enable_logs)
 nlib.log("Launching game version {0} ...".format(version_name), "info")
 
 
-def exception_handler(type, value, traceback):
-    nlib.log("{0}: {1}".format(repr(value).split("(")[0], value), "critical", 'main')
+def exception_handler(_type, value, traceback):
+    nlib.log("{0}: {1}\nTraceback : {2}".format(repr(value).split("(")[0], value, str(traceback)), "critical", 'main')
     from tkinter import Tk, messagebox
-    root = Tk()
-    root.attributes("-topmost", True)
-    root.withdraw()
+    _root = Tk()
+    _root.attributes("-topmost", True)
+    _root.withdraw()
     messagebox.showerror("An error occurred", "{}: {}".format(repr(value).split("(")[0], value))
-    root.destroy()
+    _root.destroy()
     sys.exit()
 
 
@@ -46,16 +46,7 @@ enable_hash_checking = False  # Should only be enabled when released !!!
 
 if enable_hash_checking:
     import hashlib
-
-    hashes = [["LICENSE", "d5dc6d638156797c63fffd4bc908a3ec380e37d051996284736c6222438f3c9a"],
-              ["nathlib.py", "e85f2234f4a8907d56f73a984a39b6fbcb8aa54e5bc82b62f11ad684eed83fa3"],
-              ["README.MD", "70c728ac19b13ff9a343743ee5cf821d8dfea5d253201efbabbfc284d3951702"],
-              ["settings_window.py", "17ca489a5fea4fe8243f6c6a4eaeaae8a004e9e10c0516bb4889688d7f02ecf2"],
-              ["scripts/util/FileManager.py", "1c2c2e18c473429a0d3c1ee607adc1055eed3efe64bb5b1776b0eaff9acae0a3"],
-              ["scripts/util/default/lang/en_US.py", "e32c190196fcbb4e55d07e5bc99d9f665fd9b7f9bf1dd98d72ffd04f2d0481c1"]
-        ,
-              ["scripts/util/default/lang/fr_FR.py", "b105710bdec2b292ebb3b8fa8782601c3786c1f3b9cb4a9d9410926d2dce280c"]
-              ]
+    hashes = []  # hashes = [["name.py", "hash"],]
 
     for _hash in hashes:
 
@@ -102,8 +93,8 @@ try:
 
     for x in range(0, lang_number):
         exec("from scripts.util.FileManager import " + lang_files_to_load[x])
-except:
-    nlib.log("Failed to load resources, aborting ...", "critical")
+except Exception as e:
+    nlib.log("Failed to load resources, aborting ... (%s)" % str(e), "critical")
     sys.exit()
 
 # Initialisation de Pygame
@@ -246,9 +237,9 @@ def save_bziocoins(bziocoins):
     overwrite_better_score(a[0], a[1], bziocoins, a[3], a[4])
 
 
-def save_inventory(inv, buy):  # buy = which swatter you bought.
+def save_inventory(__inv, buy):  # buy = which swatter you bought.
     a = get_better_score()
-    overwrite_better_score(a[0], a[1], a[2], buy, inv)
+    overwrite_better_score(a[0], a[1], a[2], buy, __inv)
 
 
 # definition du joueur
@@ -295,18 +286,19 @@ class Var:
             self.is_update_checked = var_value
 
     def get_value(self, var_name):
+        if self.shop:
+            pass
         return eval("self." + var_name)
 
 
 global_var = Var()
 global_var.inventory = get_inventory()[0]
 
-
 # class Player(pygame.sprite.Sprite):
 #     def __init__(self):
 #         super().__init__()
 #         self.image = img_spaceship
-#         self.rect = self.image.get_rect()  # Adapte le taille du personnage a la taille de l'image.
+#         self.rect = self.image.get_rect()
 #         self.velocity = [0, 0]
 #         self.rect.x = int(window_x / 2.15)
 #         self.rect.y = int(window_y / 2.15)
@@ -316,7 +308,7 @@ global_var.inventory = get_inventory()[0]
 #     def __init__(self):
 #         super().__init__()
 #         self.image = img_star
-#         self.rect = self.image.get_rect()  # Adapte le taille du personnage a la taille de l'image.
+#         self.rect = self.image.get_rect()
 #         self.velocity = [0, 0]
 #         self.rect.x = random.randint(0, window_x)
 #         self.rect.y = random.randint(0, window_y)
@@ -352,7 +344,7 @@ class MoskitoSpawnHandler:
             _tmp = 3
         if self.time_spent > self.time_limit:
             self.time_spent = 0
-            for moskito in range(0, random.randint(1, _tmp)):
+            for _ in range(0, random.randint(1, _tmp)):
                 self.moskito_list.append(Moskito())
             self.time_limit = self.time_limit - (self.time_limit / 85)
         for msk in self.moskito_list:
@@ -385,8 +377,8 @@ class Moskito(pygame.sprite.Sprite):
             if global_var.enable_sound:
                 try:
                     self.play_obj.stop()
-                except:
-                    nlib.log("Couldn't stop a moskito sound !", "warn")
+                except Exception as e_:
+                    nlib.log("Couldn't stop a moskito sound : %s" % str(e_), "warn")
 
     def shiver(self):  # = trembler
         a = random.randint(1, 4)
@@ -470,10 +462,12 @@ class Moskito(pygame.sprite.Sprite):
 
 
 def stop_sounds():
-    for moskito in moskito_spawn_handler.moskito_list:
+    for moskit in moskito_spawn_handler.moskito_list:
         try:
-            moskito.play_obj.stop()
-        except:
+            moskit.play_obj.stop()
+        except Exception as ignored:
+            if ignored:
+                pass
             pass
 
 
@@ -488,6 +482,7 @@ def pass_to_menu():
 
 
 def pass_to_playing():
+    global is_heat_wave
     global_var.Playing = True
     pygame.mouse.set_visible(False)
     pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
@@ -510,8 +505,8 @@ class WaitBar(pygame.sprite.Sprite):
         if not global_var.can_click:
             # global_var.click_delay = global_var.click_delay + (global_var.click_rate / 2)
             global_var.click_delay = global_var.click_delay + 5  # (388 / time_ * 0.03)
-        for f in range(0, int(global_var.click_delay)):
-            screen.blit(self.pix_image, (self.rect.x + 1 + f, self.rect.y + 1))
+        for _f in range(0, int(global_var.click_delay)):
+            screen.blit(self.pix_image, (self.rect.x + 1 + _f, self.rect.y + 1))
         screen.blit(self.image, self.rect)
 
 
@@ -525,8 +520,8 @@ class BloodBar(pygame.sprite.Sprite):
         self.rect.y = 100
 
     def update(self):
-        for f in range(0, int(global_var.blood)):
-            screen.blit(self.pix_image, (self.rect.x + 3, self.rect.y + 599 - f))
+        for f_ in range(0, int(global_var.blood)):
+            screen.blit(self.pix_image, (self.rect.x + 3, self.rect.y + 599 - f_))
         screen.blit(self.image, self.rect)
         screen.blit(pygame.font.Font("resources\\ComicSansMSM.ttf", 26).render(str(round(global_var.blood / 100.0, 1))
                                                                                + "L", True, (210, 0, 0)), (1225, 50))
@@ -540,7 +535,7 @@ class BloodBar(pygame.sprite.Sprite):
 
 
 def collision(sprite1, sprite2):
-    """Used to check between 2 pygame sprites rects if they collides
+    """Used to check between 2 pygame sprites rects if they collide
     Usage : if collision(sprite1.rect, sprite2.rect): [...]"""
     if sprite2.right * 10 < sprite1.left:
         return False
@@ -583,7 +578,7 @@ class Swatter(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
     def update(self):
-        x, y = pygame.mouse.get_pos()
+        x_, y = pygame.mouse.get_pos()
         if self.isClicking:
             self.time_ani = self.time_ani + 4
             if self.time_ani < 50:
@@ -601,9 +596,9 @@ class Swatter(pygame.sprite.Sprite):
                 self.time_ani = 0
                 self.size_w = self.base_size_w
                 self.size_h = self.base_size_h
-        screen.blit(self.image, (x - (self.rect.width / 2), y - (self.rect.height / 2)))
+        screen.blit(self.image, (x_ - (self.rect.width / 2), y - (self.rect.height / 2)))
         self.update_rect()
-        self.rect.x = x
+        self.rect.x = x_
         self.rect.y = y
         if 30 < self.time_ani < 70:
             self.destroy_nearby_moskitos()
@@ -620,7 +615,7 @@ class Button(pygame.sprite.Sprite):
         super().__init__()
         self.env = "Menu"
         self.image = img_btn_normal
-        self.rect = self.image.get_rect()  # Adapte la taille du personnage a la taille de l'image.
+        self.rect = self.image.get_rect()  # Get Shape from image
         self.velocity = [0, 0]
         self.rect.x = int(window_x / 2.5)
         self.rect.y = int(window_y / 2)
@@ -837,8 +832,8 @@ class NewButton(pygame.sprite.Sprite):
         pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
     def update(self):
-        mouse = pygame.mouse.get_pos()
-        if self.pos_max[0] > mouse[0] > self.pos_min[0] and self.pos_min[1] < mouse[1] < self.pos_max[1]:
+        mouse_ = pygame.mouse.get_pos()
+        if self.pos_max[0] > mouse_[0] > self.pos_min[0] and self.pos_min[1] < mouse_[1] < self.pos_max[1]:
             self.isHovered = True
             screen.blit(self.hover_image, self.pos_min)
             if not opaque >= 0:
@@ -897,6 +892,8 @@ class PauseButton(pygame.sprite.Sprite):
         global FPS
         print(self.id)
         allowed = True
+        if allowed:
+            pass
         _tk = tkinter.Tk()
         _tk.attributes("-topmost", True)
         _tk.withdraw()
@@ -910,7 +907,10 @@ class PauseButton(pygame.sprite.Sprite):
                 allowed = False
         else:
             allowed = False
-            tkinter.messagebox.showinfo("Success !", "Your weapon has been successfully changed !")
+            if self.id == 9 or (self.id == 4 and get_inventory()[1] > 0) or (self.id == 5 and get_inventory()[1] > 1):
+                tkinter.messagebox.showinfo("Success !", "Your weapon has been successfully changed !")
+            else:
+                tkinter.messagebox.showerror("Error !", "Please buy this weapon in the shop first !")
         _tk.destroy()
         if allowed:
             _inv = get_inventory()
@@ -988,12 +988,12 @@ def manage_buttons():
     else:
         current_env = ""
     shop_hovered_id = -1
-    for element in global_var.btn_hover_list:
-        if element.isHovered and element.env == current_env:
+    for el_ in global_var.btn_hover_list:
+        if el_.isHovered and el_.env == current_env:
             _tmp = True
             if current_env == "Shop":
-                if element.btn_type in shop_btn_ids:
-                    shop_hovered_id = shop_btn_ids[element.btn_type]
+                if el_.btn_type in shop_btn_ids:
+                    shop_hovered_id = shop_btn_ids[el_.btn_type]
     if _tmp:
         if not opaque >= 0:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
@@ -1041,7 +1041,7 @@ def calculate_distance(coord1, coord2, is_pygame_rect=True):
 
 # star = Star()
 # player = Player()
-# Definition de la fenetre
+# Window definition
 continuer = True
 playBtnIsClicked = False
 while continuer:
@@ -1106,7 +1106,7 @@ while continuer:
                 nlib.log("Mouse x: %s y: %s" % (mx, my), "debug")
             if global_var.Playing:
                 swatter.when_clicked()
-            #            dx, dy = mx - player.rect.centerx, my - player.rect.centery
+            #            dx, dy = mx - player.rect.center_x, my - player.rect.center_y
             #            angle = math.degrees(math.atan2(-dy, dx))
             #            print("Angle : " + str(90 - int(angle)))
             if 728 > mouse[0] > 512 and 362 < mouse[1] < 417 and global_var.isMenu:  # check if btn is clicked.
@@ -1121,7 +1121,7 @@ while continuer:
                     btn.isHovered = False  # Remove a large bug !
 
     # mx, my = pygame.mouse.get_pos()  # Rotation system
-    #    dx, dy = mx - player.rect.centerx, my - player.rect.centery
+    #    dx, dy = mx - player.rect.center_x, my - player.rect.center_y
     #    angle = math.degrees(math.atan2(-dy, dx)) - correction_angle
     #    angle2 = math.degrees(math.atan2(-dy, dx))
     #    rot_image = pygame.transform.rotate(player.image, angle)
@@ -1232,12 +1232,12 @@ while continuer:
         for element in shop_btn_l:
             element.update()
         # mx, my = pygame.mouse.get_pos()
-    #            dx, dy = mx - player.rect.centerx, my - player.rect.centery
+    #            dx, dy = mx - player.rect.center_x, my - player.rect.center_y
     #            angle = math.degrees(math.atan2(-dy, dx))
     # for x in range(0, 1000):
     # star_list[x].update(angle)
     # screen.blit(star_list[x].image, star_list[x].rect)
-    # screen.blit(rot_image, rot_image_rect.topleft)  # spaceship
+    # screen.blit(rot_image, rot_image_rect.top_left)  # spaceship
     if opaque >= 0:
         if opaque < 256:
             init_img.set_alpha(opaque)
