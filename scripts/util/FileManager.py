@@ -7,7 +7,7 @@ import pickle
 from os.path import isfile
 import nathlib as nlib
 
-version_name = "snapshot_015"
+version_name = "snapshot_016"
 version_number = 1
 
 nlib.start_logs("latest.log")

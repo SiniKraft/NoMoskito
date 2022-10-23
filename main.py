@@ -5,7 +5,7 @@ import nathlib as nlib
 import sys
 import time
 
-version_name = "snapshot_015"  # DO NOT FORGET TO CHANGE FILEMANAGER CONSTANTS !!!
+version_name = "snapshot_016"  # DO NOT FORGET TO CHANGE FILEMANAGER CONSTANTS !!!
 version_number = 1
 
 debug_mouse = False
@@ -129,6 +129,7 @@ shop_blood_infusion = pygame.transform.scale(shop_blood_infusion, (176, 117))
 swatter_pro = pygame.image.load("resources/swatter_pro.png").convert_alpha()
 shop_swatter_pro = pygame.transform.scale(swatter_pro, (41, 275))
 bzio_ruler = pygame.image.load("resources/imposant_ruler.png").convert_alpha()
+bzio_ruler_in_game = pygame.image.load("resources/imposant_ruler_in_game.png").convert_alpha()
 shop_bzio_ruler = pygame.transform.scale(bzio_ruler, (128, 128))
 pause_bzio_ruler = pygame.transform.rotate(shop_bzio_ruler, 90)
 img_heat_wave = pygame.image.load("resources/hot.png").convert_alpha()
@@ -551,19 +552,38 @@ def collision(sprite1, sprite2):
 class Swatter(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
+        if settings_list[4] == 0:
+            self.image = img_swatter_1
+            self.base_image = self.image
+            self.rect = self.image.get_rect()
+            self.base_size_w = 90
+            self.base_size_h = 602
+            self.size_w = self.base_size_w
+            self.size_h = self.base_size_h
+            self.moskito_kill_radius = (90, 105)
+        elif settings_list[4] == 1:
+            self.image = swatter_pro
+            self.base_image = self.image
+            self.rect = self.image.get_rect()
+            self.base_size_w = 108
+            self.base_size_h = 718
+            self.size_w = self.base_size_w
+            self.size_h = self.base_size_h
+            self.moskito_kill_radius = (108, 126)
+        elif settings_list[4] == 2:
+            self.image = bzio_ruler_in_game
+            self.base_image = self.image
+            self.rect = self.image.get_rect()
+            self.base_size_w = 72
+            self.base_size_h = 540
+            self.size_w = self.base_size_w
+            self.size_h = self.base_size_h
+            self.moskito_kill_radius = (72, 200)
         mouse2 = pygame.mouse.get_pos()
-        self.image = img_swatter_1
-        self.base_image = self.image
-        self.rect = self.image.get_rect()
         self.rect.x = mouse2[0]
         self.rect.y = mouse2[1]
         self.isClicking = False
         self.time_ani = 0
-        self.base_size_w = 90  # Swatter pro is 108
-        self.base_size_h = 602  # Swatter pro is 718
-        self.size_w = self.base_size_w
-        self.size_h = self.base_size_h
-        self.moskito_kill_radius = (90, 105)  # swatter pro is (108, 126)
 
     def destroy_nearby_moskitos(self):
         self.rect.width = self.moskito_kill_radius[0]
@@ -890,7 +910,7 @@ class PauseButton(pygame.sprite.Sprite):
         global moskito_lamp_time
         global is_heat_wave
         global FPS
-        print(self.id)
+        global swatter
         allowed = True
         if allowed:
             pass
@@ -909,6 +929,14 @@ class PauseButton(pygame.sprite.Sprite):
             allowed = False
             if self.id == 9 or (self.id == 4 and get_inventory()[1] > 0) or (self.id == 5 and get_inventory()[1] > 1):
                 tkinter.messagebox.showinfo("Success !", "Your weapon has been successfully changed !")
+                if self.id == 9:
+                    settings_list[4] = 0
+                elif self.id == 4:
+                    settings_list[4] = 1
+                elif self.id == 5:
+                    settings_list[4] = 2
+                nlib.save(settings_list, "settings.ini")
+                swatter = Swatter()
             else:
                 tkinter.messagebox.showerror("Error !", "Please buy this weapon in the shop first !")
         _tk.destroy()
