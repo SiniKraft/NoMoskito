@@ -81,6 +81,15 @@ import pygame.gfxdraw  # necessary as pygame doesn't load it by default !
 from settings_window import open_settings
 import ptext
 import operator
+import zipfile
+import io
+from PIL import Image, ImageTk
+
+try:
+    pygame.joystick.init()
+    joysticks = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
+except Exception as e:
+    print(e)
 
 # except ImportError:
 # print("[ERROR]: Failed to import modules !")
@@ -117,47 +126,66 @@ pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 clock = pygame.time.Clock()
 FPS = 60  # yeah, really !
 
+pak = None
+if isfile("resources.pak"):
+    pak = zipfile.ZipFile('resources.pak', 'r')
+    segoeui = pygame.font.Font(pak.open("segoeui.ttf", 'r'), 50)
+else:
+    segoeui = pygame.font.Font("resources\\segoeui.ttf", 50)
+
+
+def ComicSansMSM():
+    return "ComicSansMSM.ttf"
+
+
+def load_image(filepath: str):
+    if isfile("resources.pak"):
+        return pygame.image.load(io.BytesIO(pak.read(filepath.replace("resources/", "")))).convert_alpha()
+    else:
+        return pygame.image.load(filepath).convert_alpha()
+
+
 # ressources à charger
-shop_blood_bag = pygame.image.load("resources/blood_bag.png").convert_alpha()
+shop_blood_bag = load_image("resources/blood_bag.png").convert_alpha()
 shop_blood_bag = pygame.transform.scale(shop_blood_bag, (50, 50))
-shop_blood_bottle = pygame.image.load("resources/blood_bottle.png").convert_alpha()
+shop_blood_bottle = load_image("resources/blood_bottle.png").convert_alpha()
 shop_blood_bottle = pygame.transform.scale(shop_blood_bottle, (80, 80))
-shop_blood_barrel = pygame.image.load("resources/barrel_blood.png").convert_alpha()
+shop_blood_barrel = load_image("resources/barrel_blood.png").convert_alpha()
 shop_blood_barrel = pygame.transform.scale(shop_blood_barrel, (96, 96))
-shop_blood_infusion = pygame.image.load("resources/blood_infusion.png").convert_alpha()
+shop_blood_infusion = load_image("resources/blood_infusion.png").convert_alpha()
 shop_blood_infusion = pygame.transform.scale(shop_blood_infusion, (176, 117))
-swatter_pro = pygame.image.load("resources/swatter_pro.png").convert_alpha()
+swatter_pro = load_image("resources/swatter_pro.png").convert_alpha()
 shop_swatter_pro = pygame.transform.scale(swatter_pro, (41, 275))
-bzio_ruler = pygame.image.load("resources/imposant_ruler.png").convert_alpha()
-bzio_ruler_in_game = pygame.image.load("resources/imposant_ruler_in_game.png").convert_alpha()
+bzio_ruler = load_image("resources/imposant_ruler.png").convert_alpha()
+bzio_ruler_in_game = load_image("resources/imposant_ruler_in_game.png").convert_alpha()
 shop_bzio_ruler = pygame.transform.scale(bzio_ruler, (128, 128))
 pause_bzio_ruler = pygame.transform.rotate(shop_bzio_ruler, 90)
-img_heat_wave = pygame.image.load("resources/hot.png").convert_alpha()
+img_heat_wave = load_image("resources/hot.png").convert_alpha()
 shop_heat_wave = pygame.transform.scale(img_heat_wave, (17, 48))
-img_spray = pygame.image.load("resources/anti_moskito_spray.png").convert_alpha()
+img_spray = load_image("resources/anti_moskito_spray.png").convert_alpha()
 shop_spray = pygame.transform.scale(img_spray, (38, 85))
-img_lamp = pygame.image.load("resources/anti_moskito_lamp.png").convert_alpha()
+img_lamp = load_image("resources/anti_moskito_lamp.png").convert_alpha()
 shop_lamp = pygame.transform.scale(img_lamp, (66, 95))
-img_wait_bar_1 = pygame.image.load("resources/resource_0.png").convert_alpha()
-img_icon = pygame.image.load("resources/resource_2.png").convert_alpha()
-img_background = pygame.image.load("resources/resource_1.jpg").convert()
-img_logo = pygame.image.load("resources/resource_4.png").convert_alpha()
-img_btn_normal = pygame.image.load("resources/resource_5.png").convert()
-img_btn_hovered = pygame.image.load("resources/resource_6.png").convert()
-img_swatter_1 = pygame.image.load("resources/resource_8.png").convert_alpha()
+img_wait_bar_1 = load_image("resources/resource_0.png").convert_alpha()
+img_icon = load_image("resources/resource_2.png").convert_alpha()
+img_background = load_image("resources/resource_1.jpg").convert()
+img_logo = load_image("resources/resource_4.png").convert_alpha()
+img_btn_normal = load_image("resources/resource_5.png").convert()
+img_btn_hovered = load_image("resources/resource_6.png").convert()
+img_swatter_1 = load_image("resources/resource_8.png").convert_alpha()
 pause_swatter_1 = pygame.transform.scale(img_swatter_1, (41, 275))
-dark_img = pygame.image.load("resources/dark.png").convert_alpha()
-init_img = pygame.image.load("resources/init.png").convert()
+dark_img = load_image("resources/dark.png").convert_alpha()
+init_img = load_image("resources/init.png").convert()
 img_pix_wait_bar = pygame.Surface((1, 13))
 img_pix_wait_bar.fill((104, 255, 4))
-img_blood_bar = pygame.image.load("resources/resource_9.png").convert_alpha()
-btn_font = pygame.font.Font("resources\\ComicSansMSM.ttf", 30)
+img_blood_bar = load_image("resources/resource_9.png").convert_alpha()
+btn_font = pygame.font.Font(ComicSansMSM(), 30)
 img_pix_blood_bar = pygame.Surface((38, 1))
 img_pix_blood_bar.fill((255, 0, 0))
-img_moskito_list = [pygame.image.load("resources/mosquito_1.png").convert_alpha(),
-                    pygame.image.load("resources/mosquito_2.png").convert_alpha(),
-                    pygame.image.load("resources/mosquito_3.png").convert_alpha(),
-                    pygame.image.load("resources/mosquito_4.png").convert_alpha()]
+img_moskito_list = [load_image("resources/mosquito_1.png").convert_alpha(),
+                    load_image("resources/mosquito_2.png").convert_alpha(),
+                    load_image("resources/mosquito_3.png").convert_alpha(),
+                    load_image("resources/mosquito_4.png").convert_alpha()]
 
 shop_bg = pygame.Surface((1180, 660))
 pygame.gfxdraw.rectangle(shop_bg, shop_bg.get_rect(), (206, 237, 31))
@@ -177,17 +205,21 @@ shop_btn_ids = {"shop_btn_blood_2": 0,
 
 sounds_moskitos_list = ["resources/sounds/Single_moskito_1.wav",
                         "resources/sounds/Single_moskito_2.wav",
-                        "resources/sounds/Single_moskito_3.wav"]
+                        "resources/sounds/Single_moskito_3.wav",
+                        "resources/sounds/Single_moskito_4.wav"]
 
 img_tmp = pygame.Surface((4, 4))
 img_tmp.fill((255, 255, 255))
-font_a = pygame.font.Font("resources\\ComicSansMSM.ttf", 70)
+font_a = pygame.font.Font(ComicSansMSM(), 70)
 
 correction_angle = 90
 
 opaque = 1055
 
-spray_sound_obj = pygame.mixer.Sound("resources/sounds/Anti_Moskito_Spray.wav")
+if isfile("resources.pak"):
+    spray_sound_obj = pygame.mixer.Sound(io.BytesIO(pak.read("sounds/Anti_Moskito_Spray.wav")))
+else:
+    spray_sound_obj = pygame.mixer.Sound("resources/sounds/Anti_Moskito_Spray.wav")
 
 pygame.display.set_icon(img_icon)
 
@@ -196,6 +228,8 @@ sprite_group = pygame.sprite.Group()
 anti_moskito_spray = 0
 moskito_lamp_time = 0
 is_heat_wave = False
+using_controller = False
+last_controller = 0
 
 isMenu = True
 
@@ -243,11 +277,20 @@ def save_inventory(__inv, buy):  # buy = which swatter you bought.
     overwrite_better_score(a[0], a[1], a[2], buy, __inv)
 
 
+def NewMoskitoSound():
+    if isfile("resources.pak"):
+        return pygame.mixer.Sound(io.BytesIO(pak.read(sounds_moskitos_list[random.randint(
+            0, len(sounds_moskitos_list) - 1)].replace("resources/", ""))))
+    else:
+        return pygame.mixer.Sound(sounds_moskitos_list[random.randint(0, len(sounds_moskitos_list) - 1)])
+
+
 # definition du joueur
 BLOOD = 600
 blood_infusion = 0
 blood_infusion_total = 0
 blood_factor = 0
+button_pressed = False
 
 shop_hovered_id = -1
 
@@ -367,7 +410,7 @@ class Moskito(pygame.sprite.Sprite):
         self.velocity = [0, 0]
         self.isDestroyed = False
         if global_var.enable_sound:
-            self.play_obj = pygame.mixer.Sound(sounds_moskitos_list[random.randint(0, 2)])
+            self.play_obj = NewMoskitoSound()
             self.play_obj.play(-1)
 
     def destroy(self):
@@ -524,7 +567,7 @@ class BloodBar(pygame.sprite.Sprite):
         for f_ in range(0, int(global_var.blood)):
             screen.blit(self.pix_image, (self.rect.x + 3, self.rect.y + 599 - f_))
         screen.blit(self.image, self.rect)
-        screen.blit(pygame.font.Font("resources\\ComicSansMSM.ttf", 26).render(str(round(global_var.blood / 100.0, 1))
+        screen.blit(pygame.font.Font(ComicSansMSM(), 26).render(str(round(global_var.blood / 100.0, 1))
                                                                                + "L", True, (210, 0, 0)), (1225, 50))
         if global_var.blood < 0:
             stop_sounds()
@@ -598,7 +641,10 @@ class Swatter(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
     def update(self):
-        x_, y = pygame.mouse.get_pos()
+        if not using_controller:
+            x_, y = pygame.mouse.get_pos()
+        else:
+            x_, y = (int(((joysticks[last_controller].get_axis(0) + 1.0)/2.0) * 1280.0), int(((joysticks[last_controller].get_axis(1) + 1.0) / 2.0) * 720.0))
         if self.isClicking:
             self.time_ani = self.time_ani + 4
             if self.time_ani < 50:
@@ -674,6 +720,9 @@ class Button(pygame.sprite.Sprite):
                     global_var.change_fullscreen = False
                     pygame.display.toggle_fullscreen()
         if self.type == 'play':
+            if using_controller:
+                if button_pressed:
+                    self.isClicked = True
             if self.isHovered:
                 screen.blit(img_btn_hovered, (int(window_x / 2.5), int(window_y / 2)))
             else:
@@ -753,7 +802,14 @@ def buy_item(btn_type):
     _tk = tkinter.Tk()
     _tk.attributes("-topmost", True)
     _tk.withdraw()
-    _tk.iconbitmap("resources/icon.ico")
+    if isfile("resources.pak"):
+        data = pak.read("resource_2.png")  # Read in the first image data
+        dataEnc = io.BytesIO(data)  # Encode the raw data to be used by Image.open()
+        _img = Image.open(dataEnc)  # Open the image
+        icon = ImageTk.PhotoImage(_img)  # Make tk compatible image
+        _tk.iconphoto(False, icon)
+    else:
+        _tk.iconbitmap("resources/icon.ico")
     if item_id == 4:
         conf_buy = False
         if get_inventory()[1] == 0:
@@ -799,10 +855,10 @@ class NewButton(pygame.sprite.Sprite):
         self.isHovered = False
         self.env = env
         if not self.btn_type == "shop_close":
-            self.text_image = ptext.getsurf(text, color=(153, 153, 0), fontname='resources\\ComicSansMSM.ttf',
+            self.text_image = ptext.getsurf(text, color=(153, 153, 0), fontname="ComicSansMSM.ttf",
                                             fontsize=font_size)
         else:
-            self.text_image = pygame.font.Font("resources\\segoeui.ttf", 50).render(text, True, (153, 153, 0))
+            self.text_image = segoeui.render(text, True, (153, 153, 0))
         self.text_image_rect = self.text_image.get_bounding_rect()
         self.text_image = self.text_image.convert_alpha()
         # self.text_image_rect.center = ((pos_max[0] - pos_min[0]) / 2, (pos_max[1] - pos_min[1]) / 2)
@@ -861,6 +917,9 @@ class NewButton(pygame.sprite.Sprite):
         else:
             self.isHovered = False
             screen.blit(self.image, self.pos_min)
+        if using_controller and button_pressed:
+            if self.btn_type == "return_to_menu":
+                self.custom_action()
         show_shop_btn_image(self.btn_type)
         screen.blit(self.text_image, (
             (self.pos_max[0] - self.pos_min[0]) / 2 + self.pos_min[0] - self.text_image_rect.centerx,
@@ -917,7 +976,14 @@ class PauseButton(pygame.sprite.Sprite):
         _tk = tkinter.Tk()
         _tk.attributes("-topmost", True)
         _tk.withdraw()
-        _tk.iconbitmap("resources/icon.ico")
+        if isfile("resources.pak"):
+            data = pak.read("resource_2.png")  # Read in the first image data
+            dataEnc = io.BytesIO(data)  # Encode the raw data to be used by Image.open()
+            _img = Image.open(dataEnc)  # Open the image
+            icon = ImageTk.PhotoImage(_img)  # Make tk compatible image
+            _tk.iconphoto(False, icon)
+        else:
+            _tk.iconbitmap("resources/icon.ico")
         if self.id != 9 and self.id != 4 and self.id != 5:
             if self.id in get_inventory()[0]:  # check if item is present in inventory
                 allowed = tkinter.messagebox.askyesno("Confirm ?", "Do you really want to use this item ?\nThis action "
@@ -985,7 +1051,7 @@ class PauseButton(pygame.sprite.Sprite):
             _x_decal, _y_decal = (5, 5)
             if self.id == 1:
                 _x_decal, _y_decal = (15, 15)
-            screen.blit(pygame.font.Font("resources\\ComicSansMSM.ttf", 30).render(str(count), True, (0, 0, 0)), (
+            screen.blit(pygame.font.Font(ComicSansMSM(), 30).render(str(count), True, (0, 0, 0)), (
                 self.rect.x + self.rect.width - _x_decal, self.rect.y + self.rect.height - _y_decal
             ))
 
@@ -1049,14 +1115,14 @@ settings_btn.minX = 512
 settings_btn.minY = 436
 settings_btn.type = 'settings'
 
-font_shop = pygame.font.Font("resources\\ComicSansMSM.ttf", 40).render(default_lang[10], True, (153, 153, 0))
+font_shop = pygame.font.Font(ComicSansMSM(), 40).render(default_lang[10], True, (153, 153, 0))
 font_rect = font_shop.get_rect()
 font_rect.center = (window_x / 2, 50)
 
 
 def show_popup():
     screen.blit(dark_img, (0, 0, 1280, 720))
-    screen.blit(pygame.font.Font("resources\\ComicSansMSM.ttf", 40).render("A dialog box is opened", True, (153, 153, 0)
+    screen.blit(pygame.font.Font(ComicSansMSM(), 40).render("A dialog box is opened", True, (153, 153, 0)
                                                                            ), (0, 0, 100, 100))
 
 
@@ -1073,6 +1139,7 @@ def calculate_distance(coord1, coord2, is_pygame_rect=True):
 continuer = True
 playBtnIsClicked = False
 while continuer:
+    button_pressed = False
     clock.tick(FPS)
     t = clock.get_time()
     if global_var.isMenu:
@@ -1129,6 +1196,7 @@ while continuer:
                 else:
                     continuer = False
         if event.type == pygame.MOUSEBUTTONDOWN:
+            using_controller = False
             if debug_mouse:
                 mx, my = pygame.mouse.get_pos()
                 nlib.log("Mouse x: %s y: %s" % (mx, my), "debug")
@@ -1147,8 +1215,19 @@ while continuer:
                 if btn.isHovered:
                     btn.custom_action()
                     btn.isHovered = False  # Remove a large bug !
+        if event.type == pygame.JOYBUTTONDOWN:
+            using_controller = True
+            button_pressed = True
+            last_controller = event.joy
+            if global_var.Playing:
+                swatter.when_clicked()
+        if event.type == pygame.JOYAXISMOTION:
+            using_controller = True
+            last_controller = event.joy
+        if event.type == pygame.MOUSEMOTION:
+            using_controller = False
 
-    # mx, my = pygame.mouse.get_pos()  # Rotation system
+            # mx, my = pygame.mouse.get_pos()  # Rotation system
     #    dx, dy = mx - player.rect.center_x, my - player.rect.center_y
     #    angle = math.degrees(math.atan2(-dy, dx)) - correction_angle
     #    angle2 = math.degrees(math.atan2(-dy, dx))
@@ -1176,12 +1255,12 @@ while continuer:
                 global_var.blood = global_var.blood + blood_factor
                 if global_var.blood > BLOOD:
                     global_var.blood = BLOOD
-                screen.blit(pygame.font.Font('resources\\ComicSansMSM.ttf', 30).render(
+                screen.blit(pygame.font.Font(ComicSansMSM(), 30).render(
                     "%s%%" % str(int(blood_infusion / blood_infusion_total * 100)), True, (255, 0, 0)), (1200, 0))
             if moskito_lamp_time > 0:
                 moskito_lamp_time = moskito_lamp_time - 1
                 screen.blit(shop_lamp, (10, 10))
-                screen.blit(pygame.font.Font('resources\\ComicSansMSM.ttf', 25).render(
+                screen.blit(pygame.font.Font(ComicSansMSM(), 25).render(
                     "%ss" % str(int(moskito_lamp_time / 60)), True, (0, 0, 0)), (25, 45))
             if is_heat_wave:
                 screen.blit(shop_heat_wave, (15, 658))
@@ -1189,7 +1268,7 @@ while continuer:
             swatter.update()
             wait_bar.update()
             blood_bar.update()
-            screen.blit(pygame.font.Font('resources\\ComicSansMSM.ttf', 30).render("Esc: Pause game", True, (0, 0, 0)),
+            screen.blit(pygame.font.Font(ComicSansMSM(), 30).render("Esc: Pause game", True, (0, 0, 0)),
                         (850, 0))
             global_var.chrono = global_var.chrono + t
             if anti_moskito_spray > 0:
@@ -1199,7 +1278,7 @@ while continuer:
         else:  # it's pause
             screen.blit(pause_bg, (0, 0))
             _tmp_font = ptext.getsurf("Game Paused (Press Escape to resume)\nPress Space to quit", color=(153, 153, 0),
-                                      fontname='resources\\ComicSansMSM.ttf', fontsize=45)
+                                      fontname="ComicSansMSM.ttf", fontsize=45)
             _tmp_rect = _tmp_font.get_rect()
             screen.blit(_tmp_font, ((window_x / 2 - _tmp_rect.centerx), (window_y / 2 - _tmp_rect.centery)))
             for el in pause_btn_list:
@@ -1208,12 +1287,12 @@ while continuer:
     elif global_var.Final_Menu:
         screen.blit(font_a_text, (
             int(window_x / 2) - font_a_text.get_rect().centerx, int(window_y / 3) - font_a_text.get_rect().centery))
-        _font = pygame.font.Font("resources\\ComicSansMSM.ttf", 45) \
+        _font = pygame.font.Font(ComicSansMSM(), 45) \
             .render(default_lang[12].format(get_final_score()), True, (153, 153, 0))
-        _font_2 = pygame.font.Font("resources\\ComicSansMSM.ttf", 45) \
+        _font_2 = pygame.font.Font(ComicSansMSM(), 45) \
             .render(default_lang[13].format(global_var.best_score[0], global_var.best_score[1]),
                     True, (153, 153, 0))
-        _font_3 = pygame.font.Font("resources\\ComicSansMSM.ttf", 45) \
+        _font_3 = pygame.font.Font(ComicSansMSM(), 45) \
             .render("You win {0} \u20BF".format(int(get_final_score() * 0.75)),
                     True, (153, 153, 0))
         screen.blit(_font, (
@@ -1245,13 +1324,13 @@ while continuer:
         manage_buttons()
         screen.blit(shop_bg, pygame.rect.Rect(50, 30, 1180, 660))
         screen.blit(font_shop, font_rect)
-        font_shop_2 = pygame.font.Font("resources\\ComicSansMSM.ttf", 40).render("{0} \u20BF".format(
+        font_shop_2 = pygame.font.Font(ComicSansMSM(), 40).render("{0} \u20BF".format(
             global_var.bziocoins), True, (153, 153, 0))
         font_rect_2 = font_shop_2.get_rect()
         font_rect_2.center = (window_x / 1.3, 50)
         screen.blit(font_shop_2, font_rect_2)
         if shop_hovered_id != -1:
-            font_hover_2 = pygame.font.Font("resources\\ComicSansMSM.ttf", 40).render("In bag : {0}".format(
+            font_hover_2 = pygame.font.Font(ComicSansMSM(), 40).render("In bag : {0}".format(
                 operator.countOf(global_var.inventory, shop_hovered_id)), True, (153, 153, 0))
             font_hrect_2 = font_hover_2.get_rect()
             font_hrect_2.center = (window_x / 8, 50)
@@ -1274,6 +1353,7 @@ while continuer:
         opaque = opaque - 6
     pygame.display.update()
 pygame.quit()
+pak.close()
 stop_sounds()
 nlib.log("Game stopped !", "info")
 sys.exit(0)

@@ -107,7 +107,7 @@ else:
 
 for x in range(0, lang_number):
     try:
-        copyfile('resources/lang/' + lang_files_to_load[x] + ".txt",
+        copyfile('lang/' + lang_files_to_load[x] + ".txt",
                  "scripts/util/tmp/lang_" + lang_files_to_load[x] + ".py")  # will copy resource/lang file into tmp/lang
     except FileNotFoundError:
         if not os.path.isdir("tmp"):
@@ -118,15 +118,15 @@ for x in range(0, lang_number):
         nlib.log("File '" + lang_files_to_load[x] + "' not found in resources folder !", "error", "file_manager")
 
         copyfile('scripts/util/default/lang/' + lang_files_to_load[x] + '.py',
-                 "resources/lang/" + lang_files_to_load[x] + ".txt")
+                 "lang/" + lang_files_to_load[x] + ".txt")
 
 for x in range(0, lang_number):
     try:
         import_module("scripts.util.tmp.lang_" + lang_files_to_load[x])  # load modified lang file
     except:
         copyfile('scripts/util/default/lang/' + lang_files_to_load[x] + '.py',
-                 "resources/lang/" + lang_files_to_load[x] + ".txt")
-        copyfile('resources/lang/' + lang_files_to_load[x] + '.txt',
+                 "lang/" + lang_files_to_load[x] + ".txt")
+        copyfile('lang/' + lang_files_to_load[x] + '.txt',
                  "scripts/util/tmp/lang_" + lang_files_to_load[x] + ".py")
         nlib.log("Failed to launch lang resource '" + lang_files_to_load[x] + "', using default !", "error",
                  "file_manager")

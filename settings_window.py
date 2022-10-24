@@ -2,7 +2,11 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import nathlib as nlib
 import webbrowser
+import os.path
 from tkinter import messagebox
+from PIL import Image, ImageTk
+import zipfile
+import io
 
 
 def open_settings(global_var, default_lang, settings_list, version_name, lang_list, version_number):
@@ -53,11 +57,22 @@ def open_settings(global_var, default_lang, settings_list, version_name, lang_li
     settings_window.geometry("+{}+{}".format(posRight, posDown))
     settings_window.configure(width=500, height=400)
     settings_window.resizable(0, 0)
-    icon = tk.PhotoImage(file="resources/resource_2.png")
+    if os.path.isfile("resources.pak"):
+        z = zipfile.ZipFile("resources.pak", "r")
+        data = z.read("resource_2.png")  # Read in the first image data
+        dataEnc = io.BytesIO(data)  # Encode the raw data to be used by Image.open()
+        _img = Image.open(dataEnc)  # Open the image
+        icon = ImageTk.PhotoImage(_img)  # Make tk compatible image
+        data2 = z.read("resource_7.png")
+        dataEnc2 = io.BytesIO(data2)
+        _img2 = Image.open(dataEnc2)
+        img = ImageTk.PhotoImage(_img2)
+    else:
+        icon = tk.PhotoImage(file="resources/resource_2.png")
+        img = tk.PhotoImage(file="resources/resource_7.png")
     settings_window.iconphoto(False, icon)
     variable = tk.StringVar(settings_window)
     variable.set(settings_list[0])
-    img = tk.PhotoImage(file="resources/resource_7.png")
     panel = tk.Label(settings_window, image=img)
     text = ttk.Label(settings_window, text=default_lang[3])
     text.place(x=170, y=50)
