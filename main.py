@@ -1353,7 +1353,8 @@ while continuer:
         opaque = opaque - 6
     pygame.display.update()
 pygame.quit()
-pak.close()
+if isfile("resources.pak"):
+    pak.close()
 stop_sounds()
 nlib.log("Game stopped !", "info")
 sys.exit(0)
