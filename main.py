@@ -138,6 +138,14 @@ def ComicSansMSM():
     return "ComicSansMSM.ttf"
 
 
+CSM_30 = pygame.font.Font(ComicSansMSM(), 30)
+CSM_25 = pygame.font.Font(ComicSansMSM(), 25)
+CSM_26 = pygame.font.Font(ComicSansMSM(), 26)
+CSM_40 = pygame.font.Font(ComicSansMSM(), 40)
+CSM_45 = pygame.font.Font(ComicSansMSM(), 45)
+CSM_70 = pygame.font.Font(ComicSansMSM(), 70)
+
+
 def load_image(filepath: str):
     if isfile("resources.pak"):
         return pygame.image.load(io.BytesIO(pak.read(filepath.replace("resources/", "")))).convert_alpha()
@@ -179,7 +187,7 @@ init_img = load_image("resources/init.png").convert()
 img_pix_wait_bar = pygame.Surface((1, 13))
 img_pix_wait_bar.fill((104, 255, 4))
 img_blood_bar = load_image("resources/resource_9.png").convert_alpha()
-btn_font = pygame.font.Font(ComicSansMSM(), 30)
+btn_font = CSM_30
 img_pix_blood_bar = pygame.Surface((38, 1))
 img_pix_blood_bar.fill((255, 0, 0))
 img_moskito_list = [load_image("resources/mosquito_1.png").convert_alpha(),
@@ -210,7 +218,7 @@ sounds_moskitos_list = ["resources/sounds/Single_moskito_1.wav",
 
 img_tmp = pygame.Surface((4, 4))
 img_tmp.fill((255, 255, 255))
-font_a = pygame.font.Font(ComicSansMSM(), 70)
+font_a = CSM_70
 
 correction_angle = 90
 
@@ -567,7 +575,7 @@ class BloodBar(pygame.sprite.Sprite):
         for f_ in range(0, int(global_var.blood)):
             screen.blit(self.pix_image, (self.rect.x + 3, self.rect.y + 599 - f_))
         screen.blit(self.image, self.rect)
-        screen.blit(pygame.font.Font(ComicSansMSM(), 26).render(str(round(global_var.blood / 100.0, 1))
+        screen.blit(CSM_26.render(str(round(global_var.blood / 100.0, 1))
                                                                                + "L", True, (210, 0, 0)), (1225, 50))
         if global_var.blood < 0:
             stop_sounds()
@@ -1051,7 +1059,7 @@ class PauseButton(pygame.sprite.Sprite):
             _x_decal, _y_decal = (5, 5)
             if self.id == 1:
                 _x_decal, _y_decal = (15, 15)
-            screen.blit(pygame.font.Font(ComicSansMSM(), 30).render(str(count), True, (0, 0, 0)), (
+            screen.blit(CSM_30.render(str(count), True, (0, 0, 0)), (
                 self.rect.x + self.rect.width - _x_decal, self.rect.y + self.rect.height - _y_decal
             ))
 
@@ -1115,14 +1123,14 @@ settings_btn.minX = 512
 settings_btn.minY = 436
 settings_btn.type = 'settings'
 
-font_shop = pygame.font.Font(ComicSansMSM(), 40).render(default_lang[10], True, (153, 153, 0))
+font_shop = CSM_40.render(default_lang[10], True, (153, 153, 0))
 font_rect = font_shop.get_rect()
 font_rect.center = (window_x / 2, 50)
 
 
 def show_popup():
     screen.blit(dark_img, (0, 0, 1280, 720))
-    screen.blit(pygame.font.Font(ComicSansMSM(), 40).render("A dialog box is opened", True, (153, 153, 0)
+    screen.blit(CSM_40.render("A dialog box is opened", True, (153, 153, 0)
                                                                            ), (0, 0, 100, 100))
 
 
@@ -1255,12 +1263,12 @@ while continuer:
                 global_var.blood = global_var.blood + blood_factor
                 if global_var.blood > BLOOD:
                     global_var.blood = BLOOD
-                screen.blit(pygame.font.Font(ComicSansMSM(), 30).render(
+                screen.blit(CSM_30.render(
                     "%s%%" % str(int(blood_infusion / blood_infusion_total * 100)), True, (255, 0, 0)), (1200, 0))
             if moskito_lamp_time > 0:
                 moskito_lamp_time = moskito_lamp_time - 1
                 screen.blit(shop_lamp, (10, 10))
-                screen.blit(pygame.font.Font(ComicSansMSM(), 25).render(
+                screen.blit(CSM_25.render(
                     "%ss" % str(int(moskito_lamp_time / 60)), True, (0, 0, 0)), (25, 45))
             if is_heat_wave:
                 screen.blit(shop_heat_wave, (15, 658))
@@ -1268,7 +1276,7 @@ while continuer:
             swatter.update()
             wait_bar.update()
             blood_bar.update()
-            screen.blit(pygame.font.Font(ComicSansMSM(), 30).render("Esc: Pause game", True, (0, 0, 0)),
+            screen.blit(CSM_30.render("Esc: Pause game", True, (0, 0, 0)),
                         (850, 0))
             global_var.chrono = global_var.chrono + t
             if anti_moskito_spray > 0:
@@ -1287,12 +1295,12 @@ while continuer:
     elif global_var.Final_Menu:
         screen.blit(font_a_text, (
             int(window_x / 2) - font_a_text.get_rect().centerx, int(window_y / 3) - font_a_text.get_rect().centery))
-        _font = pygame.font.Font(ComicSansMSM(), 45) \
+        _font = CSM_45 \
             .render(default_lang[12].format(get_final_score()), True, (153, 153, 0))
-        _font_2 = pygame.font.Font(ComicSansMSM(), 45) \
+        _font_2 = CSM_45 \
             .render(default_lang[13].format(global_var.best_score[0], global_var.best_score[1]),
                     True, (153, 153, 0))
-        _font_3 = pygame.font.Font(ComicSansMSM(), 45) \
+        _font_3 = CSM_45 \
             .render("You win {0} \u20BF".format(int(get_final_score() * 0.75)),
                     True, (153, 153, 0))
         screen.blit(_font, (
@@ -1324,13 +1332,13 @@ while continuer:
         manage_buttons()
         screen.blit(shop_bg, pygame.rect.Rect(50, 30, 1180, 660))
         screen.blit(font_shop, font_rect)
-        font_shop_2 = pygame.font.Font(ComicSansMSM(), 40).render("{0} \u20BF".format(
+        font_shop_2 = CSM_40.render("{0} \u20BF".format(
             global_var.bziocoins), True, (153, 153, 0))
         font_rect_2 = font_shop_2.get_rect()
         font_rect_2.center = (window_x / 1.3, 50)
         screen.blit(font_shop_2, font_rect_2)
         if shop_hovered_id != -1:
-            font_hover_2 = pygame.font.Font(ComicSansMSM(), 40).render("In bag : {0}".format(
+            font_hover_2 = CSM_40.render("In bag : {0}".format(
                 operator.countOf(global_var.inventory, shop_hovered_id)), True, (153, 153, 0))
             font_hrect_2 = font_hover_2.get_rect()
             font_hrect_2.center = (window_x / 8, 50)
