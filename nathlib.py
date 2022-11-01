@@ -184,3 +184,19 @@ def load_json(directory):
         data = json.load(file)
         file.close()
     return data
+
+
+def get_user_lang():
+    try:
+        if sys.platform == "win32":
+            ret = 'en_US'
+            import ctypes
+            import locale
+            ret = str(locale.windows_locale[ctypes.windll.kernel32.GetUserDefaultUILanguage()])
+        else:
+            ret = "en_US"
+            ret = str(os.getenv('LANG'))
+    except Exception as e:
+        print(e)
+        ret = "en_US"
+    return ret

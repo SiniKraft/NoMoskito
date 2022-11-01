@@ -1,4 +1,5 @@
 import os.path
+import sys
 import tkinter
 import tkinter.messagebox
 from shutil import copyfile
@@ -6,6 +7,7 @@ from importlib import import_module
 import pickle
 from os.path import isfile
 import nathlib as nlib
+import glob
 
 version_name = "snapshot_016"
 version_number = 1
@@ -13,20 +15,48 @@ version_number = 1
 nlib.start_logs("latest.log")
 nlib.log("Starting file manager ...", "info", "file_manager")
 
-lang_files_to_load = ['en_US', 'fr_FR']
+lang_files_to_load = glob.glob("lang/*.lang")
 
-lang_files_names = {"Français": "fr_FR", "English": "en_US"}
-
-lang_list = ['English', 'Français']
-
-lang_number = len(lang_files_to_load)  # Count the number of files entries
+lang_number = len(lang_files_to_load)
 
 
-# settings loader
+def get_system_lang():
+    try:
+        if sys.platform == "win32":
+            ret = 'en_US'
+            import ctypes
+            import locale
+            ret = str(locale.windows_locale[ctypes.windll.kernel32.GetUserDefaultUILanguage()])
+        else:
+            ret = "en_US"
+            ret = str(os.getenv('LANG'))
+    except Exception as e:
+        print(e)
+        ret = "en_US"
+    ret = ret[:2]  # [:2] = get 2 first character en_US -> en
+    lng = []
+    for ele in lang_files_to_load:
+        lng.append(ele.replace(".lang", "").replace("lang", ""))
+    fn = False
+    for _el in lng:
+        if nlib.check(ret, _el):
+            fn = True
+    if fn:
+        try:
+            with open("lang/" + ret + ".lang", 'r', encoding='utf-8') as tx:
+                final = tx.readlines()[0][:-1]
+                tx.close()
+        except Exception as e:
+            print(e)
+            final = "English"
+    else:
+        final = "English"
+    return final
+
 
 def new_settings():
     with open('settings.ini', 'wb') as settings_file:
-        setting_list = ["English", False, False, False, 0]  # 0 is swatter, 1 pro, 2 ruler
+        setting_list = [get_system_lang(), False, True, False, 0]  # 0 is swatter, 1 pro, 2 ruler
         pickle.dump(setting_list, settings_file)
         settings_file.close()
     return setting_list  # will create new settings, return it, and save it.
@@ -105,44 +135,32 @@ else:
     settings_list = new_settings()
     nlib.log("Default settings file was not found, creating a blank one !", "error", "file_manager")
 
+# load default lang
+
+lang_file_names = {}
 for x in range(0, lang_number):
-    try:
-        copyfile('lang/' + lang_files_to_load[x] + ".txt",
-                 "scripts/util/tmp/lang_" + lang_files_to_load[x] + ".py")  # will copy resource/lang file into tmp/lang
-    except FileNotFoundError:
-        if not os.path.isdir("tmp"):
-            os.mkdir("scripts/util/tmp/")
-            with open("scripts/util/tmp/README.txt", "w") as file:
-                file.write("All the files here will be overwritten each time game launch, so don't edit nothing here !")
-                file.close()
-        nlib.log("File '" + lang_files_to_load[x] + "' not found in resources folder !", "error", "file_manager")
+    with open(lang_files_to_load[x], "r", encoding="utf-8") as lang_file:
+        name = lang_file.readlines()[0][:-1]  # [:-1] : remove the '\n' character at end of each line [0] = get 1st line
+        lang_file.close()
+    lang_file_names.update({name: lang_files_to_load[x]})
 
-        copyfile('scripts/util/default/lang/' + lang_files_to_load[x] + '.py',
-                 "lang/" + lang_files_to_load[x] + ".txt")
+lang_list = list(lang_file_names.keys())
 
-for x in range(0, lang_number):
-    try:
-        import_module("scripts.util.tmp.lang_" + lang_files_to_load[x])  # load modified lang file
-    except:
-        copyfile('scripts/util/default/lang/' + lang_files_to_load[x] + '.py',
-                 "lang/" + lang_files_to_load[x] + ".txt")
-        copyfile('lang/' + lang_files_to_load[x] + '.txt',
-                 "scripts/util/tmp/lang_" + lang_files_to_load[x] + ".py")
-        nlib.log("Failed to launch lang resource '" + lang_files_to_load[x] + "', using default !", "error",
-                 "file_manager")
-        import_module("scripts.util.tmp.lang_" + lang_files_to_load[x])
-        # will replace modified files with the defaults because errors were found on them.
+if not settings_list[0] in lang_file_names:
+    # The lang set in options is not in lang/ directory and cannot be loaded
+    settings_list[0] = "English"
+    nlib.save(settings_list, "settings.ini")
 
-    finally:
-        try:
-            scripts = __import__("scripts.util.tmp.lang_" + lang_files_to_load[x])
-            exec(lang_files_to_load[x] + " = " + 'scripts.util.tmp.lang_' + lang_files_to_load[x] + '.' +
-                 lang_files_to_load[x]
-                 + '_lang')
-            # load list components as single vars containing info
-            exec("nlib.log('Successfully loaded resource " + "\\'" + lang_files_to_load[x] + ".txt" + "\\'" + "." +
-                 "', 'info', 'file_manager')")
-        except:
-            nlib.log("Can\'t load resource \'" + lang_files_to_load[x] + "\' !", "error", "file_manager")
+# let's load the lang file !
+with open(lang_file_names[settings_list[0]], "r", encoding="utf-8") as lang_txt_file:
+    default_lang = []
+    lines = lang_txt_file.readlines()  # can only be called once, or it returns empty list
+    for x in range(0, len(lines) - 1):
+        line_to_append = lines[x + 1].replace("\\n", "\n").replace("\\u20BF", "\u20BF")
+        if lines[x + 1][-1] == "\n":  # [-1] = get last character of string
+            line_to_append = line_to_append[:-1]  # remove last character
+        default_lang.append(line_to_append)
+
+# Note : default_lang is directly imported in main.py when FileManager import is called
 
 nlib.log("All files are loaded.", "info", "file_manager")

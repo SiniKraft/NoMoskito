@@ -99,9 +99,6 @@ except Exception as e:
 
 try:
     from scripts.util.FileManager import *
-
-    for x in range(0, lang_number):
-        exec("from scripts.util.FileManager import " + lang_files_to_load[x])
 except Exception as e:
     nlib.log("Failed to load resources, aborting ... (%s)" % str(e), "critical")
     sys.exit()
@@ -113,7 +110,7 @@ pygame.font.init()
 if settings_list[2]:
     pygame.mixer.init()  # Sons de pygame.
 
-# Definition de la fenêtre
+# Window definition
 
 window_x = 1280
 window_y = 720
@@ -220,8 +217,6 @@ img_tmp = pygame.Surface((4, 4))
 img_tmp.fill((255, 255, 255))
 font_a = CSM_70
 
-correction_angle = 90
-
 opaque = 1055
 
 if isfile("resources.pak"):
@@ -242,11 +237,6 @@ last_controller = 0
 isMenu = True
 
 pause_btn_list = []
-
-# fichier lang
-
-lang = lang_files_names[settings_list[0]]
-default_lang = eval(lang)
 
 play_btn_text = btn_font.render(default_lang[0], True, (153, 153, 0))
 settings_btn_text = btn_font.render(default_lang[1], True, (153, 153, 0))
@@ -773,39 +763,39 @@ def buy_item(btn_type):
     conf_buy = True
     if btn_type == "shop_btn_blood_2":
         cost = 100
-        article_name = "Small Blood Bag"
+        article_name = default_lang[18]
         item_id = 0
     elif btn_type == "shop_btn_blood_3":
         cost = 150
-        article_name = "Blood Bottle"
+        article_name = default_lang[19]
         item_id = 1
     elif btn_type == "shop_btn_blood_4":
         cost = 300
-        article_name = "Huge Blood Bag"
+        article_name = default_lang[20]
         item_id = 2
     elif btn_type == "shop_btn_blood_5":
         cost = 800
-        article_name = "Blood Infusion"
+        article_name = default_lang[21]
         item_id = 3
     elif btn_type == "shop_btn_swatter":
         cost = 1000
-        article_name = "Swatter Pro"
+        article_name = default_lang[22]
         item_id = 4
     elif btn_type == "shop_btn_bzio":
         cost = 10000
-        article_name = "Imposant Bzio Ruler"
+        article_name = default_lang[23]
         item_id = 5
     elif btn_type == "shop_btn_heat_wave":
         cost = 500
-        article_name = "Heat Wave"
+        article_name = default_lang[24]
         item_id = 6
     elif btn_type == "shop_btn_spray":
         cost = 500
-        article_name = "Anti Moskito Spray"
+        article_name = default_lang[25]
         item_id = 7
     elif btn_type == "shop_btn_lamp":
         cost = 750
-        article_name = "Anti Moskito Lamp"
+        article_name = default_lang[26]
         item_id = 8
     _tk = tkinter.Tk()
     _tk.attributes("-topmost", True)
@@ -823,18 +813,18 @@ def buy_item(btn_type):
         if get_inventory()[1] == 0:
             conf_buy = True
         elif get_inventory()[1] > 0:
-            tkinter.messagebox.showerror("You can't buy this item !", "You already have this !")
+            tkinter.messagebox.showerror(default_lang[27], default_lang[28])
     elif item_id == 5:
         conf_buy = False
         if get_inventory()[1] == 0:
-            tkinter.messagebox.showerror("You can't buy this item !", "You need the low-level swatter first !")
+            tkinter.messagebox.showerror(default_lang[27], default_lang[29])
         elif get_inventory()[1] == 1:
             conf_buy = True
         else:
-            tkinter.messagebox.showerror("You can't buy this item !", "You already have this !")
+            tkinter.messagebox.showerror(default_lang[27], default_lang[28])
 
     if conf_buy:
-        if tkinter.messagebox.askyesno("Confirm buying ?", "Are you sure you want to buy %s ?" % article_name):
+        if tkinter.messagebox.askyesno(default_lang[30], default_lang[31].format(article_name)):
             if get_bziocoins() >= cost:
                 save_bziocoins(get_bziocoins() - cost)
                 if not (item_id == 4 or item_id == 5):
@@ -848,9 +838,9 @@ def buy_item(btn_type):
                     else:
                         _inv[1] = 2
                     save_inventory(_inv[0], _inv[1])
-                tkinter.messagebox.showinfo("Success !", "You have successfully bought this item.")
+                tkinter.messagebox.showinfo(default_lang[32], default_lang[33])
             else:
-                tkinter.messagebox.showerror("Not enough money !", "You do not have enough Coins")
+                tkinter.messagebox.showerror(default_lang[34], default_lang[35])
     _tk.destroy()
     global_var.bziocoins = get_bziocoins()
     global_var.inventory = get_inventory()[0]
@@ -936,23 +926,19 @@ class NewButton(pygame.sprite.Sprite):
 
 shop_btn = NewButton((512, 510), (728, 566), default_lang[10], "shop")
 close_shop_btn = NewButton((1158, 37), (1223, 79), u"\u00D7", "shop_close", "Shop")
-shop_btn_l = [NewButton((87, 116), (432, 212), "Healers", "", "Shop"),
-              NewButton((87, 222), (432, 318), "Small blood bag (0.75L)\n100 \u20BF", "shop_btn_blood_2", "Shop"),
-              NewButton((87, 328), (432, 424), "Blood bottle (1.5L)\n150 \u20BF", "shop_btn_blood_3", "Shop"),
-              NewButton((87, 434), (432, 530), "Huge blood bag (4L)\n300 \u20BF", "shop_btn_blood_4", "Shop"),
-              NewButton((87, 540), (432, 636), "Blood infusion (30s, 0.25 L/s)\n800 \u20BF", "shop_btn_blood_5", "Shop",
+shop_btn_l = [NewButton((87, 116), (432, 212), default_lang[36], "", "Shop"),
+              NewButton((87, 222), (432, 318), default_lang[37], "shop_btn_blood_2", "Shop"),
+              NewButton((87, 328), (432, 424), default_lang[38], "shop_btn_blood_3", "Shop"),
+              NewButton((87, 434), (432, 530), default_lang[39], "shop_btn_blood_4", "Shop"),
+              NewButton((87, 540), (432, 636), default_lang[40], "shop_btn_blood_5", "Shop",
                         23),
-              NewButton((462, 116), (807, 270), "Weapons", "", "Shop"),
-              NewButton((462, 300), (807, 454), "Swatter Pro\n1000 \u20BF", "shop_btn_swatter", "Shop"),
-              NewButton((462, 484), (807, 636), "Imposant bzio ruler\n10 000 \u20BF", "shop_btn_bzio", "Shop"),
-              NewButton((837, 116), (1182, 231), "Satisfaction tools", "", "Shop"),
-              NewButton((837, 251), (1182, 367), "Heat wave (-25% moskitos \nspawning during this game)\n500 \u20BF",
-                        "shop_btn_heat_wave", "Shop", 25),
-              NewButton((837, 387), (1182, 502), "Anti moskito spray (sus)\n(Kill all moskitos during 2s)\n500 \u20BF",
-                        "shop_btn_spray", "Shop", 25),
-              NewButton((837, 522), (1182, 636),
-                        "Anti moskito lamp (Slow down\nmoskito speed by 70% during 30s)\n750 \u20BF",
-                        "shop_btn_lamp", "Shop", 21)]
+              NewButton((462, 116), (807, 270), default_lang[41], "", "Shop"),
+              NewButton((462, 300), (807, 454), default_lang[42], "shop_btn_swatter", "Shop"),
+              NewButton((462, 484), (807, 636), default_lang[43], "shop_btn_bzio", "Shop"),
+              NewButton((837, 116), (1182, 231), default_lang[44], "", "Shop"),
+              NewButton((837, 251), (1182, 367), default_lang[45], "shop_btn_heat_wave", "Shop", 25),
+              NewButton((837, 387), (1182, 502), default_lang[46], "shop_btn_spray", "Shop", 25),
+              NewButton((837, 522), (1182, 636), default_lang[47], "shop_btn_lamp", "Shop", 21)]
 
 return_to_menu_btn = NewButton((490, 618), (790, 688), default_lang[17], "return_to_menu", "Final_Menu")
 
@@ -994,15 +980,14 @@ class PauseButton(pygame.sprite.Sprite):
             _tk.iconbitmap("resources/icon.ico")
         if self.id != 9 and self.id != 4 and self.id != 5:
             if self.id in get_inventory()[0]:  # check if item is present in inventory
-                allowed = tkinter.messagebox.askyesno("Confirm ?", "Do you really want to use this item ?\nThis action "
-                                                                   "cannot be undone !")
+                allowed = tkinter.messagebox.askyesno(default_lang[48], default_lang[49])
             else:  # or deny use !
-                tkinter.messagebox.showerror("Not owned !", "You do not have this item.\nBuy it in the shop first !")
+                tkinter.messagebox.showerror(default_lang[50], default_lang[51])
                 allowed = False
         else:
             allowed = False
             if self.id == 9 or (self.id == 4 and get_inventory()[1] > 0) or (self.id == 5 and get_inventory()[1] > 1):
-                tkinter.messagebox.showinfo("Success !", "Your weapon has been successfully changed !")
+                tkinter.messagebox.showinfo(default_lang[32], default_lang[52])
                 if self.id == 9:
                     settings_list[4] = 0
                 elif self.id == 4:
@@ -1012,7 +997,7 @@ class PauseButton(pygame.sprite.Sprite):
                 nlib.save(settings_list, "settings.ini")
                 swatter = Swatter()
             else:
-                tkinter.messagebox.showerror("Error !", "Please buy this weapon in the shop first !")
+                tkinter.messagebox.showerror(default_lang[50], default_lang[53])
         _tk.destroy()
         if allowed:
             _inv = get_inventory()
@@ -1130,8 +1115,7 @@ font_rect.center = (window_x / 2, 50)
 
 def show_popup():
     screen.blit(dark_img, (0, 0, 1280, 720))
-    screen.blit(CSM_40.render("A dialog box is opened", True, (153, 153, 0)
-                                                                           ), (0, 0, 100, 100))
+    screen.blit(CSM_40.render("A dialog box is opened", True, (153, 153, 0)), (0, 0, 100, 100))
 
 
 def calculate_distance(coord1, coord2, is_pygame_rect=True):
@@ -1276,7 +1260,7 @@ while continuer:
             swatter.update()
             wait_bar.update()
             blood_bar.update()
-            screen.blit(CSM_30.render("Esc: Pause game", True, (0, 0, 0)),
+            screen.blit(CSM_30.render(default_lang[54], True, (0, 0, 0)),
                         (850, 0))
             global_var.chrono = global_var.chrono + t
             if anti_moskito_spray > 0:
@@ -1285,8 +1269,7 @@ while continuer:
                     moskito.destroy()
         else:  # it's pause
             screen.blit(pause_bg, (0, 0))
-            _tmp_font = ptext.getsurf("Game Paused (Press Escape to resume)\nPress Space to quit", color=(153, 153, 0),
-                                      fontname="ComicSansMSM.ttf", fontsize=45)
+            _tmp_font = ptext.getsurf(default_lang[55], color=(153, 153, 0), fontname="ComicSansMSM.ttf", fontsize=45)
             _tmp_rect = _tmp_font.get_rect()
             screen.blit(_tmp_font, ((window_x / 2 - _tmp_rect.centerx), (window_y / 2 - _tmp_rect.centery)))
             for el in pause_btn_list:
@@ -1301,7 +1284,7 @@ while continuer:
             .render(default_lang[13].format(global_var.best_score[0], global_var.best_score[1]),
                     True, (153, 153, 0))
         _font_3 = CSM_45 \
-            .render("You win {0} \u20BF".format(int(get_final_score() * 0.75)),
+            .render(default_lang[56].format(int(get_final_score() * 0.75)),
                     True, (153, 153, 0))
         screen.blit(_font, (
             int(window_x / 2) - _font.get_rect().centerx,
@@ -1338,11 +1321,9 @@ while continuer:
         font_rect_2.center = (window_x / 1.3, 50)
         screen.blit(font_shop_2, font_rect_2)
         if shop_hovered_id != -1:
-            font_hover_2 = CSM_40.render("In bag : {0}".format(
-                operator.countOf(global_var.inventory, shop_hovered_id)), True, (153, 153, 0))
-            font_hrect_2 = font_hover_2.get_rect()
-            font_hrect_2.center = (window_x / 8, 50)
-            screen.blit(font_hover_2, font_hrect_2)
+            font_hover_2 = CSM_40.render(default_lang[57].format(operator.countOf(
+                global_var.inventory, shop_hovered_id)), True, (153, 153, 0))
+            screen.blit(font_hover_2, (65, 25))
         close_shop_btn.update()
         for element in shop_btn_l:
             element.update()

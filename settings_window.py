@@ -19,7 +19,7 @@ def open_settings(global_var, default_lang, settings_list, version_name, lang_li
         except Exception as e:
             nlib.log("Failed to check for updates ! %s" % repr(e).split("(")[0] + ": " + str(e),
                      "error", "settings_window")
-            messagebox.showerror("Cannot check for updates !", "Failed to check for updates !\n%s" % repr(e)
+            messagebox.showerror(default_lang[58], default_lang[59].format(repr(e))
                                  .split("(")[0] + ": " + str(e))
             return
 
@@ -40,9 +40,7 @@ def open_settings(global_var, default_lang, settings_list, version_name, lang_li
         settings_window.destroy()
 
     def reset():
-        if messagebox.askyesnocancel("Reset save data",
-                                     "You are about to delete save data.\nWARNING: THIS ACTION CANNOT BE"
-                                     " UNDONE!\nAre you sure ?"):
+        if messagebox.askyesnocancel(default_lang[60], default_lang[61]):
             nlib.save([0, "nobody", 0, 0, []], 'save.dat')
 
     global_var.set_value("is_settings_to_save", False)
@@ -78,7 +76,7 @@ def open_settings(global_var, default_lang, settings_list, version_name, lang_li
     text.place(x=170, y=50)
     update_txt = ttk.Label(settings_window, text=default_lang[7].format(version_name))
     update_txt.place(x=170, y=125)
-    warn_txt = ttk.Label(settings_window, text="Warning: You need to restart the game to apply changes !")
+    warn_txt = ttk.Label(settings_window, text=default_lang[62])
     warn_txt.place(x=40, y=320)
     btn_update = ttk.Button(settings_window, text=default_lang[8], command=check_update_main)
     btn_update.place(x=40, y=125)
@@ -86,7 +84,7 @@ def open_settings(global_var, default_lang, settings_list, version_name, lang_li
     w.place(x=250, y=50)
     btn = ttk.Button(settings_window, text=default_lang[4], command=save_window_settings)
     btn.place(x=215, y=365)
-    btn_del_save = ttk.Button(settings_window, text='Reset save data', command=reset)
+    btn_del_save = ttk.Button(settings_window, text=default_lang[60], command=reset)
     btn_del_save.place(x=40, y=237)
     var_1 = tk.IntVar()
     if settings_list[2]:
@@ -98,7 +96,7 @@ def open_settings(global_var, default_lang, settings_list, version_name, lang_li
     enable_audio_ck = ttk.Checkbutton(settings_window, text=default_lang[16], variable=var_1,
                                       onvalue=1, offvalue=0)
     enable_audio_ck.place(x=40, y=162)
-    enable_fullscreen = ttk.Checkbutton(settings_window, text="Play in full screen (F11)", variable=var_2,
+    enable_fullscreen = ttk.Checkbutton(settings_window, text=default_lang[63], variable=var_2,
                                         onvalue=True, offvalue=False)
     enable_fullscreen.place(x=40, y=200)
     panel.pack()
