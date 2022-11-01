@@ -126,7 +126,7 @@ FPS = 60  # yeah, really !
 pak = None
 if isfile("resources.pak"):
     pak = zipfile.ZipFile('resources.pak', 'r')
-    segoeui = pygame.font.Font(pak.open("segoeui.ttf", 'r'), 50)
+    segoeui = pygame.font.Font(io.BytesIO(pak.read("segoeui.ttf")), 50)
 else:
     segoeui = pygame.font.Font("resources\\segoeui.ttf", 50)
 
