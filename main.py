@@ -84,6 +84,7 @@ import operator
 import zipfile
 import io
 from PIL import Image, ImageTk
+import dialog as d
 
 try:
     pygame.joystick.init()
@@ -199,6 +200,7 @@ pygame.gfxdraw.rectangle(shop_bg, pygame.rect.Rect(2, 2, 1176, 656), (206, 237, 
 pygame.gfxdraw.box(shop_bg, pygame.rect.Rect(3, 3, 1174, 654), (235, 248, 165))
 pygame.gfxdraw.box(shop_bg, pygame.rect.Rect(3, 3, 1174, 50), (220, 242, 96))
 pause_bg = pygame.Surface((1280, 720))
+
 
 shop_btn_ids = {"shop_btn_blood_2": 0,
                 "shop_btn_blood_3": 1,
@@ -1150,7 +1152,6 @@ while continuer:
                     global_var.IsGamePaused = False
                     global_var.Playing = False
                     pass_to_menu()
-
             if event.key == pygame.K_F11:
                 settings_list[3] = not settings_list[3]
                 nlib.save(settings_list, "settings.ini")
@@ -1239,6 +1240,10 @@ while continuer:
         # if not play_btn.isHovered and not settings_btn.isHovered:
         #     pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
         screen.blit(img_logo, (int(window_x / 5.2), int(window_y / 6)))  # logo
+        if should_show_popup:
+            if opaque == -1:
+                continuer = d.trailer(screen, segoeui, CSM_40, default_lang)
+                should_show_popup = False
 
     elif global_var.Playing:
         if not global_var.IsGamePaused:

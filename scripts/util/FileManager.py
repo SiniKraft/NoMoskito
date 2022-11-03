@@ -19,6 +19,8 @@ lang_files_to_load = glob.glob("lang/*.lang")
 
 lang_number = len(lang_files_to_load)
 
+should_show_popup = False
+
 
 def get_system_lang():
     try:
@@ -55,6 +57,8 @@ def get_system_lang():
 
 
 def new_settings():
+    global should_show_popup
+    should_show_popup = True
     with open('settings.ini', 'wb') as settings_file:
         setting_list = [get_system_lang(), False, True, False, 0]  # 0 is swatter, 1 pro, 2 ruler
         pickle.dump(setting_list, settings_file)
