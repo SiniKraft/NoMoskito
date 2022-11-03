@@ -223,8 +223,13 @@ opaque = 1055
 
 if isfile("resources.pak"):
     spray_sound_obj = pygame.mixer.Sound(io.BytesIO(pak.read("sounds/Anti_Moskito_Spray.wav")))
+    main_sound_obj = pygame.mixer.Sound(io.BytesIO(pak.read("sounds/Main_Menu_Music.wav")))
+    shop_music_obj = pygame.mixer.Sound(io.BytesIO(pak.read("sounds/Shop_Music.wav")))
 else:
     spray_sound_obj = pygame.mixer.Sound("resources/sounds/Anti_Moskito_Spray.wav")
+    main_sound_obj = pygame.mixer.Sound("resources/sounds/Main_Menu_Music.wav")  # do not use mixer.music, so it loads
+    # all in memory
+    shop_music_obj = pygame.mixer.Sound("resources/sounds/Shop_Music.wav")
 
 pygame.display.set_icon(img_icon)
 
@@ -418,6 +423,11 @@ class Moskito(pygame.sprite.Sprite):
             self.isDestroyed = True
             global_var.moskitos_killed = global_var.moskitos_killed + 1
             global_var.renew_sound = True
+            if using_controller:
+                try:
+                    joysticks[last_controller].rumble(0, 1, 100)
+                except:
+                    pass
             if global_var.enable_sound:
                 try:
                     self.play_obj.stop()
@@ -516,6 +526,9 @@ def stop_sounds():
 
 
 def pass_to_menu():
+    if global_var.enable_sound:
+        main_sound_obj.play(-1)
+        shop_music_obj.stop()
     global_var.click_delay = 338
     swatter.isClicking = False
     swatter.time_ani = 0
@@ -884,6 +897,8 @@ class NewButton(pygame.sprite.Sprite):
         if self.btn_type == "shop":
             global_var.isMenu = False
             global_var.shop = True
+            if global_var.enable_sound:
+                shop_music_obj.play(-1)
         elif self.btn_type == "shop_close":
             if global_var.shop:
                 pass_to_menu()
@@ -1138,6 +1153,8 @@ while continuer:
     t = clock.get_time()
     if global_var.isMenu:
         global_var.Playing = False
+    else:
+        main_sound_obj.stop()
 
     if global_var.Playing:
         global_var.isMenu = False
@@ -1345,6 +1362,9 @@ while continuer:
         screen.blit(init_img, (0, 0))
         pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
         opaque = opaque - 6
+        if opaque == -1:
+            if global_var.enable_sound:
+                main_sound_obj.play(-1)
     pygame.display.update()
 pygame.quit()
 if isfile("resources.pak"):
