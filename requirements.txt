@@ -1,0 +1,12 @@
+altgraph>=0.17.3
+future>=0.18.2
+importlib-metadata>=4.8.3
+pefile>=2022.5.30
+Pillow>=8.4.0
+pygame>=2.1.0
+# required to build as exe
+pyinstaller>=4.5
+pyinstaller-hooks-contrib>=2021.0
+pywin32-ctypes>=0.2.0
+typing_extensions>=4.1.1
+zipp>=3.6.0
