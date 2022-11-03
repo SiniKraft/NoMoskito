@@ -1,4 +1,5 @@
 import os
+import pathlib
 import tkinter.messagebox
 
 import nathlib as nlib
@@ -1164,6 +1165,46 @@ while continuer:
         if event.type == pygame.QUIT:
             continuer = False
         if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_c:
+                if global_var.shop:
+                    rt = tk.Tk()
+                    rt.withdraw()
+                    ret = simpledialog.askstring(default_lang[81], default_lang[81])
+                    if not isfile(os.path.join(pathlib.Path.home(), "nm_code.raw")):
+                        with open(os.path.join(pathlib.Path.home(), "nm_code.raw"), "wb") as fil:
+                            pickle.dump([], fil)
+                            fil.close()  # create the file if it does not exist
+                    with open(os.path.join(pathlib.Path.home(), "nm_code.raw"), "rb") as _fil:
+                        code_pick = pickle.load(_fil)
+                    fnd = False
+                    for each in code_pick:
+                        if each == ret:
+                            fnd = True
+                    if fnd:
+                        tkinter.messagebox.showerror(default_lang[82], default_lang[82])
+                    else:
+                        try:
+                            codes: dict = nlib.get_json_from_url("https://raw.githubusercontent.com/SiniKraft/"
+                                                                 "NoMoskito/master/codes.json")
+                            if codes.get(ret) is not None:
+                                # code found
+                                with open(os.path.join(pathlib.Path.home(), "nm_code.raw"), "wb") as fil:
+                                    code_pick.append(ret)
+                                    pickle.dump(code_pick, fil)
+                                global_var.bziocoins = global_var.bziocoins + codes[ret]["BZIOC"]
+                                save_bziocoins(global_var.bziocoins)
+                                for x in range(0, 10):
+                                    if str(x) in list(codes[ret].keys()):
+                                        _inv = get_inventory()
+                                        for i in range(0, int(codes[ret][str(x)])):
+                                            _inv[0].append(x)
+                                        save_inventory(_inv[0], _inv[1])
+                                        global_var.inventory = _inv[0]
+                            else:
+                                tkinter.messagebox.showerror(default_lang[83], default_lang[83])
+                        except Exception as _e_:
+                            tkinter.messagebox.showerror(default_lang[83], default_lang[83] + "\n" + str(_e_))
+                    rt.destroy()
             if event.key == pygame.K_SPACE:
                 if global_var.IsGamePaused:
                     global_var.IsGamePaused = False
@@ -1339,6 +1380,7 @@ while continuer:
         screen.blit(font_shop, font_rect)
         font_shop_2 = CSM_40.render("{0} \u20BF".format(
             global_var.bziocoins), True, (153, 153, 0))
+        screen.blit(CSM_25.render(default_lang[80], True, (153, 153, 0)), (10, 685))
         font_rect_2 = font_shop_2.get_rect()
         font_rect_2.center = (window_x / 1.3, 50)
         screen.blit(font_shop_2, font_rect_2)
