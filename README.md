@@ -6,7 +6,7 @@ Try to keep enough blood to live the longer time possible !
 You can even play with a controller. (motion capture not available for now) - play with a stick and buttons  
 You can go in the shop and buy many powerups to help you (with money you gain by playing)
 # Code
-If you want to edit the [Main.py](https://github.com/SiniKraft/NoMoskito/blob/main/Main.py) file, don't forget to install the requirements with [pip](https://pypi.org/).
+If you want to edit the [main.py](https://github.com/SiniKraft/NoMoskito/blob/main/main.py) file, don't forget to install the requirements with [pip](https://pypi.org/).
 This game works with [python](https://www.python.org/downloads/) 3.6 + (these versions are tested).
 # Installation
 You can't install it as I haven't finished yet !  
