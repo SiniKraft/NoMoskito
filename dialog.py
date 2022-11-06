@@ -50,7 +50,7 @@ def trailer(screen: pygame.Surface, seg_ui: pygame.font.Font, csm_40: pygame.fon
 
 
 class DialogButton(pygame.sprite.Sprite):
-    def __init__(self, pos_min: int, pos_max: int, text: str, btn_type: str, seg_ui: pygame.font.Font,
+    def __init__(self, pos_min, pos_max, text: str, btn_type: str, seg_ui: pygame.font.Font,
                  screen: pygame.surface.Surface, font_size=30):
         super().__init__()
         self.screen = screen
