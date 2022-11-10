@@ -13,7 +13,7 @@ Shop
 You died !
 Your score : {0}
 Best score before : {0} by {1}
-You have the best score !\nEnter your name !
+You have the best score ! Enter your name !
 Enter your name ...
 Enable sound (not recommended !)
 Go back to menu
@@ -83,3 +83,7 @@ C: Enter a special code
 Type the code
 Code already used !
 Something went wrong !
+Yes
+No
+OK
+Confirm

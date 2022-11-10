@@ -1,32 +1,29 @@
 import os
 import pathlib
-import tkinter.messagebox
-
-import nathlib as nlib
 import sys
 import time
 
-version_name = "snapshot_016"  # DO NOT FORGET TO CHANGE FILEMANAGER CONSTANTS !!!
-version_number = 1
+import nathlib as nlib
+from constants import *
 
 debug_mouse = False
 
-if os.path.isfile("latest.log"):
+if os.path.isfile(LOG_PATH):
     try:
-        os.remove('latest.log')
+        os.remove(LOG_PATH)
     except Exception as e:
         nlib.log("Couldn't remove latest.log : {}".format(str(e)), "warn")
-if not os.path.isfile("enable_logs.txt"):
-    with open("enable_logs.txt", "w") as file:
+if not os.path.isfile(ENABLE_LOGS_PATH):
+    with open(ENABLE_LOGS_PATH, "w") as file:
         file.write("# Enable logging ? \"yes\" or \"no\"\nDefaults to \"no\"to avoid unnecessary log file rewriting.\n"
                    "You should let this parameter to \"no\" unless you have an error.\nno")
-enable_logs = "latest.log"
-with open("enable_logs.txt", "r") as file:
+enable_logs = LOG_PATH
+with open(ENABLE_LOGS_PATH, "r") as file:
     if file.readlines()[3].startswith("no"):
         enable_logs = None
 
 nlib.start_logs(enable_logs)
-nlib.log("Launching game version {0} ...".format(version_name), "info")
+nlib.log("Launching game version {0} ...".format(VERSION_STRING), "info")
 
 
 def exception_handler(_type, value, traceback):
@@ -37,7 +34,7 @@ def exception_handler(_type, value, traceback):
     _root.withdraw()
     messagebox.showerror("An error occurred", "{}: {}".format(repr(value).split("(")[0], value))
     _root.destroy()
-    sys.exit()
+    sys.exit(1)
 
 
 enable_exception_handler = False
@@ -76,15 +73,12 @@ print("-----------------------------------------------------------------------")
 import time
 import random
 import math
-import tkinter as tk
-from tkinter import simpledialog
 import pygame.gfxdraw  # necessary as pygame doesn't load it by default !
 from settings_window import open_settings
 import ptext
 import operator
 import zipfile
 import io
-from PIL import Image, ImageTk
 import dialog as d
 
 try:
@@ -123,18 +117,17 @@ else:
 pygame.display.set_caption("NoMoskito!")
 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 clock = pygame.time.Clock()
-FPS = 60  # yeah, really !
 
 pak = None
-if isfile("resources.pak"):
-    pak = zipfile.ZipFile('resources.pak', 'r')
-    segoeui = pygame.font.Font(io.BytesIO(pak.read("segoeui.ttf")), 50)
+if isfile(RESOURCE_PAK_PATH):
+    pak = zipfile.ZipFile(RESOURCE_PAK_PATH, 'r')
+    segoeui = pygame.font.Font(io.BytesIO(pak.read(SUI_FILE_NAME)), 50)
 else:
-    segoeui = pygame.font.Font("resources\\segoeui.ttf", 50)
+    segoeui = pygame.font.Font(SUI_PATH, 50)
 
 
 def ComicSansMSM():
-    return "ComicSansMSM.ttf"
+    return CSM_PATH
 
 
 CSM_30 = pygame.font.Font(ComicSansMSM(), 30)
@@ -146,8 +139,8 @@ CSM_70 = pygame.font.Font(ComicSansMSM(), 70)
 
 
 def load_image(filepath: str):
-    if isfile("resources.pak"):
-        return pygame.image.load(io.BytesIO(pak.read(filepath.replace("resources/", "")))).convert_alpha()
+    if isfile(RESOURCE_PAK_PATH):
+        return pygame.image.load(io.BytesIO(pak.read(filepath.replace(RESOURCES_PREFIX, "")))).convert_alpha()
     else:
         return pygame.image.load(filepath).convert_alpha()
 
@@ -183,6 +176,10 @@ img_swatter_1 = load_image("resources/resource_8.png").convert_alpha()
 pause_swatter_1 = pygame.transform.scale(img_swatter_1, (41, 275))
 dark_img = load_image("resources/dark.png").convert_alpha()
 init_img = load_image("resources/init.png").convert()
+img_info = load_image("resources/mosquito_info.png").convert_alpha()
+img_question = load_image("resources/mosquito_question.png").convert_alpha()
+img_error = load_image("resources/mosquito_error.png").convert_alpha()
+img_ask_string = load_image("resources/mosquito_text.png").convert_alpha()
 img_pix_wait_bar = pygame.Surface((1, 13))
 img_pix_wait_bar.fill((104, 255, 4))
 img_blood_bar = load_image("resources/resource_9.png").convert_alpha()
@@ -220,9 +217,9 @@ img_tmp = pygame.Surface((4, 4))
 img_tmp.fill((255, 255, 255))
 font_a = CSM_70
 
-opaque = 1055
+opaque = 655
 
-if isfile("resources.pak"):
+if isfile(RESOURCE_PAK_PATH):
     spray_sound_obj = pygame.mixer.Sound(io.BytesIO(pak.read("sounds/Anti_Moskito_Spray.wav")))
     main_sound_obj = pygame.mixer.Sound(io.BytesIO(pak.read("sounds/Main_Menu_Music.wav")))
     shop_music_obj = pygame.mixer.Sound(io.BytesIO(pak.read("sounds/Shop_Music.wav")))
@@ -241,6 +238,7 @@ moskito_lamp_time = 0
 is_heat_wave = False
 using_controller = False
 last_controller = 0
+is_dialog = 0
 
 isMenu = True
 
@@ -284,9 +282,9 @@ def save_inventory(__inv, buy):  # buy = which swatter you bought.
 
 
 def NewMoskitoSound():
-    if isfile("resources.pak"):
+    if isfile(RESOURCE_PAK_PATH):
         return pygame.mixer.Sound(io.BytesIO(pak.read(sounds_moskitos_list[random.randint(
-            0, len(sounds_moskitos_list) - 1)].replace("resources/", ""))))
+            0, len(sounds_moskitos_list) - 1)].replace(RESOURCES_PREFIX, ""))))
     else:
         return pygame.mixer.Sound(sounds_moskitos_list[random.randint(0, len(sounds_moskitos_list) - 1)])
 
@@ -426,7 +424,7 @@ class Moskito(pygame.sprite.Sprite):
             global_var.renew_sound = True
             if using_controller:
                 try:
-                    joysticks[last_controller].rumble(0, 1, 100)
+                    joysticks[last_controller].rumble(1.0, 1.0, 10)
                 except:
                     pass
             if global_var.enable_sound:
@@ -728,7 +726,7 @@ class Button(pygame.sprite.Sprite):
             elif self.type == 'settings':
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_WAIT)
                 show_popup()
-                open_settings(global_var, default_lang, settings_list, version_name, lang_list, version_number)
+                open_settings(global_var, default_lang, settings_list, VERSION_STRING, lang_list, VERSION_NUM)
                 self.isClicked = False
                 if global_var.change_fullscreen:
                     global_var.change_fullscreen = False
@@ -772,94 +770,95 @@ def show_shop_btn_image(btn_type):
 
 
 def buy_item(btn_type):
-    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_WAIT)
-    article_name = ""  # Ensure var is defined
-    cost = 0
-    item_id = 0
-    conf_buy = True
-    if btn_type == "shop_btn_blood_2":
-        cost = 100
-        article_name = default_lang[18]
+    global continuer
+    global is_dialog
+    if is_dialog == 0:
+        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_WAIT)
+        article_name = ""  # Ensure var is defined
+        cost = 0
         item_id = 0
-    elif btn_type == "shop_btn_blood_3":
-        cost = 150
-        article_name = default_lang[19]
-        item_id = 1
-    elif btn_type == "shop_btn_blood_4":
-        cost = 300
-        article_name = default_lang[20]
-        item_id = 2
-    elif btn_type == "shop_btn_blood_5":
-        cost = 800
-        article_name = default_lang[21]
-        item_id = 3
-    elif btn_type == "shop_btn_swatter":
-        cost = 1000
-        article_name = default_lang[22]
-        item_id = 4
-    elif btn_type == "shop_btn_bzio":
-        cost = 10000
-        article_name = default_lang[23]
-        item_id = 5
-    elif btn_type == "shop_btn_heat_wave":
-        cost = 500
-        article_name = default_lang[24]
-        item_id = 6
-    elif btn_type == "shop_btn_spray":
-        cost = 500
-        article_name = default_lang[25]
-        item_id = 7
-    elif btn_type == "shop_btn_lamp":
-        cost = 750
-        article_name = default_lang[26]
-        item_id = 8
-    _tk = tkinter.Tk()
-    _tk.attributes("-topmost", True)
-    _tk.withdraw()
-    if isfile("resources.pak"):
-        data = pak.read("resource_2.png")  # Read in the first image data
-        dataEnc = io.BytesIO(data)  # Encode the raw data to be used by Image.open()
-        _img = Image.open(dataEnc)  # Open the image
-        icon = ImageTk.PhotoImage(_img)  # Make tk compatible image
-        _tk.iconphoto(False, icon)
-    else:
-        _tk.iconbitmap("resources/icon.ico")
-    if item_id == 4:
-        conf_buy = False
-        if get_inventory()[1] == 0:
-            conf_buy = True
-        elif get_inventory()[1] > 0:
-            tkinter.messagebox.showerror(default_lang[27], default_lang[28])
-    elif item_id == 5:
-        conf_buy = False
-        if get_inventory()[1] == 0:
-            tkinter.messagebox.showerror(default_lang[27], default_lang[29])
-        elif get_inventory()[1] == 1:
-            conf_buy = True
-        else:
-            tkinter.messagebox.showerror(default_lang[27], default_lang[28])
-
-    if conf_buy:
-        if tkinter.messagebox.askyesno(default_lang[30], default_lang[31].format(article_name)):
-            if get_bziocoins() >= cost:
-                save_bziocoins(get_bziocoins() - cost)
-                if not (item_id == 4 or item_id == 5):
-                    _inv = get_inventory()
-                    _inv[0].append(item_id)
-                    save_inventory(_inv[0], _inv[1])
-                else:
-                    _inv = get_inventory()
-                    if item_id == 4:
-                        _inv[1] = 1
-                    else:
-                        _inv[1] = 2
-                    save_inventory(_inv[0], _inv[1])
-                tkinter.messagebox.showinfo(default_lang[32], default_lang[33])
+        conf_buy = True
+        if btn_type == "shop_btn_blood_2":
+            cost = 100
+            article_name = default_lang[18]
+            item_id = 0
+        elif btn_type == "shop_btn_blood_3":
+            cost = 150
+            article_name = default_lang[19]
+            item_id = 1
+        elif btn_type == "shop_btn_blood_4":
+            cost = 300
+            article_name = default_lang[20]
+            item_id = 2
+        elif btn_type == "shop_btn_blood_5":
+            cost = 800
+            article_name = default_lang[21]
+            item_id = 3
+        elif btn_type == "shop_btn_swatter":
+            cost = 1000
+            article_name = default_lang[22]
+            item_id = 4
+        elif btn_type == "shop_btn_bzio":
+            cost = 10000
+            article_name = default_lang[23]
+            item_id = 5
+        elif btn_type == "shop_btn_heat_wave":
+            cost = 500
+            article_name = default_lang[24]
+            item_id = 6
+        elif btn_type == "shop_btn_spray":
+            cost = 500
+            article_name = default_lang[25]
+            item_id = 7
+        elif btn_type == "shop_btn_lamp":
+            cost = 750
+            article_name = default_lang[26]
+            item_id = 8
+        if item_id == 4:
+            conf_buy = False
+            if get_inventory()[1] == 0:
+                conf_buy = True
+            elif get_inventory()[1] > 0:
+                is_dialog = 20
+                continuer = d.show(screen, segoeui, CSM_40, default_lang, default_lang[27], default_lang[28], img_error)
+        elif item_id == 5:
+            conf_buy = False
+            if get_inventory()[1] == 0:
+                is_dialog = 20
+                continuer = d.show(screen, segoeui, CSM_40, default_lang, default_lang[27], default_lang[29], img_error)
+            elif get_inventory()[1] == 1:
+                conf_buy = True
             else:
-                tkinter.messagebox.showerror(default_lang[34], default_lang[35])
-    _tk.destroy()
-    global_var.bziocoins = get_bziocoins()
-    global_var.inventory = get_inventory()[0]
+                is_dialog = 20
+                continuer = d.show(screen, segoeui, CSM_40, default_lang, default_lang[27], default_lang[28], img_error)
+
+        if conf_buy:
+            is_dialog = 30
+            continuer, _ret = d.askyesno(screen, CSM_40, default_lang, default_lang[30], default_lang[31]
+                                         .format(article_name), img_question)
+            if _ret:
+                if get_bziocoins() >= cost:
+                    save_bziocoins(get_bziocoins() - cost)
+                    if not (item_id == 4 or item_id == 5):
+                        _inv = get_inventory()
+                        _inv[0].append(item_id)
+                        save_inventory(_inv[0], _inv[1])
+                    else:
+                        _inv = get_inventory()
+                        if item_id == 4:
+                            _inv[1] = 1
+                        else:
+                            _inv[1] = 2
+                        save_inventory(_inv[0], _inv[1])
+                    is_dialog = 20
+                    continuer = d.show(screen, segoeui, CSM_40, default_lang, default_lang[32], default_lang[33],
+                                       img_info)
+                else:
+                    is_dialog = 20
+                    continuer = d.show(screen, segoeui, CSM_40, default_lang, default_lang[34], default_lang[35],
+                                       img_error)
+        global_var.bziocoins = get_bziocoins()
+        global_var.inventory = get_inventory()[0]
 
 
 class NewButton(pygame.sprite.Sprite):
@@ -982,66 +981,67 @@ class PauseButton(pygame.sprite.Sprite):
         global is_heat_wave
         global FPS
         global swatter
+        global continuer
+        global is_dialog
         allowed = True
         if allowed:
             pass
-        _tk = tkinter.Tk()
-        _tk.attributes("-topmost", True)
-        _tk.withdraw()
-        if isfile("resources.pak"):
-            data = pak.read("resource_2.png")  # Read in the first image data
-            dataEnc = io.BytesIO(data)  # Encode the raw data to be used by Image.open()
-            _img = Image.open(dataEnc)  # Open the image
-            icon = ImageTk.PhotoImage(_img)  # Make tk compatible image
-            _tk.iconphoto(False, icon)
-        else:
-            _tk.iconbitmap("resources/icon.ico")
-        if self.id != 9 and self.id != 4 and self.id != 5:
-            if self.id in get_inventory()[0]:  # check if item is present in inventory
-                allowed = tkinter.messagebox.askyesno(default_lang[48], default_lang[49])
-            else:  # or deny use !
-                tkinter.messagebox.showerror(default_lang[50], default_lang[51])
-                allowed = False
-        else:
-            allowed = False
-            if self.id == 9 or (self.id == 4 and get_inventory()[1] > 0) or (self.id == 5 and get_inventory()[1] > 1):
-                tkinter.messagebox.showinfo(default_lang[32], default_lang[52])
-                if self.id == 9:
-                    settings_list[4] = 0
-                elif self.id == 4:
-                    settings_list[4] = 1
-                elif self.id == 5:
-                    settings_list[4] = 2
-                nlib.save(settings_list, "settings.ini")
-                swatter = Swatter()
+        if is_dialog == 0:
+            if self.id != 9 and self.id != 4 and self.id != 5:
+                if self.id in get_inventory()[0]:  # check if item is present in inventory
+                    is_dialog = 60
+                    continuer, allowed = d.askyesno(screen, CSM_40, default_lang, default_lang[48], default_lang[49],
+                                                    img_question)
+                else:  # or deny use !
+                    is_dialog = 20
+                    continuer = d.show(screen, segoeui, CSM_40, default_lang, default_lang[50], default_lang[51],
+                                       img_error)
+                    allowed = False
             else:
-                tkinter.messagebox.showerror(default_lang[50], default_lang[53])
-        _tk.destroy()
-        if allowed:
-            _inv = get_inventory()
-            _inv[0] = remove_item_from_inventory(_inv[0], self.id)
-            save_inventory(_inv[0], _inv[1])
-            global_var.inventory = _inv[0]
-            if self.id == 0:
-                global_var.blood += 75
-            elif self.id == 1:
-                global_var.blood += 150
-            elif self.id == 2:
-                global_var.blood += 400
-            elif self.id == 3:
-                blood_infusion = 1800  # time
-                blood_infusion_total = 1800
-                blood_factor = 0.417
-            elif self.id == 6:
-                is_heat_wave = True
-            elif self.id == 7:
-                anti_moskito_spray = 180
-            elif self.id == 8:
-                moskito_lamp_time = 1800
-            if global_var.blood > BLOOD:
-                global_var.blood = BLOOD
+                allowed = False
+                if self.id == 9 or (self.id == 4 and get_inventory()[1] > 0) or (self.id == 5 and get_inventory()[1]
+                                                                                 > 1):
+                    is_dialog = 20
+                    continuer = d.show(screen, segoeui, CSM_40, default_lang, default_lang[32], default_lang[52],
+                                       img_info)
+                    if self.id == 9:
+                        settings_list[4] = 0
+                    elif self.id == 4:
+                        settings_list[4] = 1
+                    elif self.id == 5:
+                        settings_list[4] = 2
+                    nlib.save(settings_list, "settings.ini")
+                    swatter = Swatter()
+                else:
+                    is_dialog = 20
+                    continuer = d.show(screen, segoeui, CSM_40, default_lang, default_lang[50], default_lang[53],
+                                       img_error)
+            if allowed:
+                _inv = get_inventory()
+                _inv[0] = remove_item_from_inventory(_inv[0], self.id)
+                save_inventory(_inv[0], _inv[1])
+                global_var.inventory = _inv[0]
+                if self.id == 0:
+                    global_var.blood += 75
+                elif self.id == 1:
+                    global_var.blood += 150
+                elif self.id == 2:
+                    global_var.blood += 400
+                elif self.id == 3:
+                    blood_infusion = 1800  # time
+                    blood_infusion_total = 1800
+                    blood_factor = 0.417
+                elif self.id == 6:
+                    is_heat_wave = True
+                elif self.id == 7:
+                    anti_moskito_spray = 180
+                elif self.id == 8:
+                    moskito_lamp_time = 1800
+                if global_var.blood > BLOOD:
+                    global_var.blood = BLOOD
 
     def update(self):
+        global is_dialog
         count = operator.countOf(global_var.inventory, self.id)
         _x, _y = pygame.mouse.get_pos()
         base_x = self.rect.x
@@ -1055,7 +1055,8 @@ class PauseButton(pygame.sprite.Sprite):
         if base_x < _x < base_x + self.rect.width - x_penal and self.rect.y < _y < self.rect.y + self.rect.height:
             screen.blit(self.bigger_image, self.bigger_image_rect)
             if pygame.mouse.get_pressed()[0]:
-                self.on_click()
+                if is_dialog == 0:
+                    self.on_click()
         else:
             screen.blit(self.image, self.rect)
         if count != 0:
@@ -1063,8 +1064,7 @@ class PauseButton(pygame.sprite.Sprite):
             if self.id == 1:
                 _x_decal, _y_decal = (15, 15)
             screen.blit(CSM_30.render(str(count), True, (0, 0, 0)), (
-                self.rect.x + self.rect.width - _x_decal, self.rect.y + self.rect.height - _y_decal
-            ))
+                self.rect.x + self.rect.width - _x_decal, self.rect.y + self.rect.height - _y_decal))
 
 
 PauseButton(shop_blood_bag, (208, 570), 0)
@@ -1149,6 +1149,8 @@ def calculate_distance(coord1, coord2, is_pygame_rect=True):
 continuer = True
 playBtnIsClicked = False
 while continuer:
+    if is_dialog > 0:
+        is_dialog = is_dialog - 1
     button_pressed = False
     clock.tick(FPS)
     t = clock.get_time()
@@ -1167,9 +1169,8 @@ while continuer:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_c:
                 if global_var.shop:
-                    rt = tk.Tk()
-                    rt.withdraw()
-                    ret = simpledialog.askstring(default_lang[81], default_lang[81])
+                    continuer, ret = d.askstring(screen, segoeui, CSM_40, default_lang, default_lang[81],
+                                                 default_lang[81], img_ask_string)
                     if not isfile(os.path.join(pathlib.Path.home(), "nm_code.raw")):
                         with open(os.path.join(pathlib.Path.home(), "nm_code.raw"), "wb") as fil:
                             pickle.dump([], fil)
@@ -1181,7 +1182,9 @@ while continuer:
                         if each == ret:
                             fnd = True
                     if fnd:
-                        tkinter.messagebox.showerror(default_lang[82], default_lang[82])
+                        is_dialog = 20
+                        continuer = d.show(screen, segoeui, CSM_40, default_lang, default_lang[82], default_lang[82],
+                                           img_error)
                     else:
                         try:
                             codes: dict = nlib.get_json_from_url("https://raw.githubusercontent.com/SiniKraft/"
@@ -1201,10 +1204,13 @@ while continuer:
                                         save_inventory(_inv[0], _inv[1])
                                         global_var.inventory = _inv[0]
                             else:
-                                tkinter.messagebox.showerror(default_lang[83], default_lang[83])
+                                is_dialog = 20
+                                continuer = d.show(screen, segoeui, CSM_40, default_lang, default_lang[83],
+                                                   default_lang[83], img_error)
                         except Exception as _e_:
-                            tkinter.messagebox.showerror(default_lang[83], default_lang[83] + "\n" + str(_e_))
-                    rt.destroy()
+                            is_dialog = 20
+                            continuer = d.show(screen, segoeui, CSM_40, default_lang, default_lang[83],
+                                               default_lang[83] + "\n" + str(_e_), img_error)
             if event.key == pygame.K_SPACE:
                 if global_var.IsGamePaused:
                     global_var.IsGamePaused = False
@@ -1300,7 +1306,7 @@ while continuer:
         screen.blit(img_logo, (int(window_x / 5.2), int(window_y / 6)))  # logo
         if should_show_popup:
             if opaque == -1:
-                continuer = d.trailer(screen, segoeui, CSM_40, default_lang)
+                continuer = d.trailer(screen, segoeui, CSM_40)
                 should_show_popup = False
 
     elif global_var.Playing:
@@ -1363,13 +1369,9 @@ while continuer:
             global_var.Final_verdict = True
             is_heat_wave = False
             if get_final_score() > get_better_score()[0]:
-                root = tk.Tk()
-                root.attributes("-topmost", True)
-                root.withdraw()
-                show_popup()
-                overwrite_better_score(get_final_score(), str(simpledialog.askstring(
-                    default_lang[14], default_lang[15])), global_var.bziocoins)
-                root.destroy()
+                continuer, _ns = d.askstring(screen, segoeui, CSM_40, default_lang, default_lang[14], default_lang[15],
+                                             img_ask_string)
+                overwrite_better_score(get_final_score(), str(_ns), global_var.bziocoins)
             global_var.bziocoins = global_var.bziocoins + int(get_final_score() * 0.75)
             save_bziocoins(global_var.bziocoins)
         return_to_menu_btn.update()
@@ -1404,13 +1406,13 @@ while continuer:
         screen.blit(init_img, (0, 0))
         pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
         opaque = opaque - 6
-        if opaque == -1:
+        if opaque < 0:
             if global_var.enable_sound:
                 main_sound_obj.play(-1)
     pygame.display.update()
 pygame.quit()
-if isfile("resources.pak"):
+if isfile(RESOURCE_PAK_PATH):
     pak.close()
 stop_sounds()
 nlib.log("Game stopped !", "info")
-sys.exit(0)
+sys.exit(0)  # useful when converting to .exe : make process stop instead of running forever in background !

@@ -13,7 +13,7 @@ Boutique
 Vous êtes mort !
 Votre score : {0}
 Meilleur score avant : {0} par {1}
-Vous avez le meilleur score !\nEntrez votre nom !
+Vous avez le meilleur score ! Entrez votre nom !
 Entrez votre nom ...
 Activer le son (non recommandé !)
 Retourner au menu
@@ -83,3 +83,7 @@ C: Entrer un code spécial
 Entrez le code
 Code déjà utilisé
 Une erreur s'est produite !
+Oui
+Non
+OK
+Confirmer

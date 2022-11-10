@@ -3,14 +3,11 @@ import sys
 import tkinter
 import tkinter.messagebox
 from shutil import copyfile
-from importlib import import_module
 import pickle
 from os.path import isfile
 import nathlib as nlib
 import glob
-
-version_name = "snapshot_016"
-version_number = 1
+from constants import *
 
 nlib.start_logs("latest.log")
 nlib.log("Starting file manager ...", "info", "file_manager")
@@ -24,34 +21,38 @@ should_show_popup = False
 
 def get_system_lang():
     try:
-        if sys.platform == "win32":
-            ret = 'en_US'
-            import ctypes
-            import locale
-            ret = str(locale.windows_locale[ctypes.windll.kernel32.GetUserDefaultUILanguage()])
-        else:
-            ret = "en_US"
-            ret = str(os.getenv('LANG'))
-    except Exception as e:
-        print(e)
-        ret = "en_US"
-    ret = ret[:2]  # [:2] = get 2 first character en_US -> en
-    lng = []
-    for ele in lang_files_to_load:
-        lng.append(ele.replace(".lang", "").replace("lang", ""))
-    fn = False
-    for _el in lng:
-        if nlib.check(ret, _el):
-            fn = True
-    if fn:
         try:
-            with open("lang/" + ret + ".lang", 'r', encoding='utf-8') as tx:
-                final = tx.readlines()[0][:-1]
-                tx.close()
+            if sys.platform == "win32":
+                ret = 'en_US'
+                import ctypes
+                import locale
+                ret = str(locale.windows_locale[ctypes.windll.kernel32.GetUserDefaultUILanguage()])
+            else:
+                ret = "en_US"
+                ret = str(os.getenv('LANG'))
         except Exception as e:
             print(e)
+            ret = "en_US"
+        ret = ret[:2]  # [:2] = get 2 first character en_US -> en
+        lng = []
+        for ele in lang_files_to_load:
+            lng.append(ele.replace(".lang", "").replace("lang", ""))
+        fn = False
+        for _el in lng:
+            if nlib.check(ret, _el):
+                fn = True
+        if fn:
+            try:
+                with open("lang/" + ret + ".lang", 'r', encoding='utf-8') as tx:
+                    final = tx.readlines()[0][:-1]
+                    tx.close()
+            except Exception as e:
+                print(e)
+                final = "English"
+        else:
             final = "English"
-    else:
+    except Exception as e:
+        print(e)
         final = "English"
     return final
 
@@ -69,7 +70,7 @@ def new_settings():
 def overwrite_better_score(score, name, bziocoins, buy=0, item_list=None):
     if item_list is None:
         item_list = []
-    nlib.save([score, name, bziocoins, buy, item_list, version_name], 'save.dat')
+    nlib.save([score, name, bziocoins, buy, item_list, VERSION_STRING], 'save.dat')
 
 
 def update_save_data():
@@ -99,12 +100,12 @@ def update_save_data():
         item_list = data[4]
     except:
         pass
-    nlib.save([score, name, bziocoins, buy, item_list, version_name], "save.dat")
+    nlib.save([score, name, bziocoins, buy, item_list, VERSION_STRING], "save.dat")
 
 
 def get_better_score():
     try:
-        if nlib.load("save.dat")[-1] != version_name:
+        if nlib.load("save.dat")[-1] != VERSION_STRING:
             tk = tkinter.Tk()
             tk.attributes("-topmost", True)
             tk.withdraw()
@@ -113,7 +114,7 @@ def get_better_score():
                                                                "Do you want to try converting your save data ?\n"
                                                                "A backup will be made, but\n"
                                                                "Previous versions may not be able to load your save\n"
-                                                               "Proceed ?" % (version_name,
+                                                               "Proceed ?" % (VERSION_STRING,
                                                                               str(nlib.load("save.dat")[-1]))):
                 copyfile("save.dat", "backup_%s.dat" % (str(nlib.load("save.dat")[-1])))
                 update_save_data()
@@ -122,8 +123,8 @@ def get_better_score():
         return nlib.load('save.dat')
     except Exception as e:
         nlib.log("Failed to read save data : %s" % str(e), "error", "file_manager")
-        return [0, "nobody", 0, 0, [], version_name]  # Best score, best player name, b coins, 0: Basic Swatter, 1: Swatter Pro 2:
-        # B Ruler, and list containing inv
+        return [0, "nobody", 0, 0, [], VERSION_STRING]
+        # Best score, best player name, b coins, 0: Basic Swatter, 1: Swatter Pro 2: B Ruler, and list containing inv
 
 
 if isfile("settings.ini"):  # load the save
