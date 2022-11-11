@@ -9,6 +9,7 @@ RESOURCES_PREFIX = "resources/"
 
 LOG_PATH = "latest.log"
 ENABLE_LOGS_PATH = "enable_logs.txt"
+JOY_ID_PATH = "controller_joystick_id.txt"
 
 RESOURCE_PAK_PATH = "resources.pak"
 

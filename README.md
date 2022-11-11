@@ -11,7 +11,7 @@ If you want to edit the [main.py](https://github.com/SiniKraft/NoMoskito/blob/ma
 with '[pip](https://pypi.org/) (or pip3) install -r [requirements.txt](https://github.com/SiniKraft/NoMoskito/blob/master/requirements.txt)'  
 This game works with [python](https://www.python.org/downloads/) 3.6 + (these versions are tested).
 # Installation
-You can't install it as I haven't finished yet !  
+See how to install in the [wiki](https://github.com/SiniKraft/NoMoskito/wiki/Installation)
 If you want to test install pygame 2.0.0 +  
 Note: If you want to use a controller to play the game, connect it BEFORE launching the game !  
 You can test controllers input on Windows with the TestController.exe binary included in the NoMoskito! App folder  

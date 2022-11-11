@@ -3,6 +3,7 @@ future>=0.18.2
 importlib-metadata>=4.8.3
 pefile>=2022.5.30
 pygame>=2.1.0
+Pillow>=1.0
 # required to build as exe
 pyinstaller>=4.5
 pyinstaller-hooks-contrib>=2021.0

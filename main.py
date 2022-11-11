@@ -23,8 +23,23 @@ with open(ENABLE_LOGS_PATH, "r") as file:
         enable_logs = None
 
 nlib.start_logs(enable_logs)
+
+if not os.path.isfile(JOY_ID_PATH):
+    with open(JOY_ID_PATH, "w") as file:
+        file.write("0\n1\n1\n1\n# First 2 lines : X Axis id and Y Axis id\n# Last 2 lines : Invert them (*1) or (*-1)")
+joystick_id0, joystick_id1 = (0, 1)
+joy_multiplier = (1, 1)
+with open(JOY_ID_PATH, "r") as file:
+    try:
+        splt = file.read().split("\n")
+        joystick_id0, joystick_id1 = (int(splt[0]), int(splt[1]))
+        joy_multiplier = (int(splt[2]), int(splt[3]))
+    except Exception as e:
+        nlib.log("Cannot load joystick id !\n" + str(e), "error")
+
 nlib.log("Launching game version {0} ...".format(VERSION_STRING), "info")
 
+print(joystick_id0, joystick_id1, joy_multiplier)
 
 def exception_handler(_type, value, traceback):
     nlib.log("{0}: {1}\nTraceback : {2}".format(repr(value).split("(")[0], value, str(traceback)), "critical", 'main')
@@ -97,7 +112,7 @@ try:
     from scripts.util.FileManager import *
 except Exception as e:
     nlib.log("Failed to load resources, aborting ... (%s)" % str(e), "critical")
-    sys.exit()
+    sys.exit(1)
 
 # Initialisation de Pygame
 
@@ -656,7 +671,8 @@ class Swatter(pygame.sprite.Sprite):
         if not using_controller:
             x_, y = pygame.mouse.get_pos()
         else:
-            x_, y = (int(((joysticks[last_controller].get_axis(0) + 1.0)/2.0) * 1280.0), int(((joysticks[last_controller].get_axis(1) + 1.0) / 2.0) * 720.0))
+            x_, y = (int((((joysticks[last_controller].get_axis(joystick_id0)*joy_multiplier[0]) + 1.0)/2.0) * 1280.0),
+                     int((((joysticks[last_controller].get_axis(joystick_id1)*joy_multiplier[1]) + 1.0) / 2.0) * 720.0))
         if self.isClicking:
             self.time_ani = self.time_ani + 4
             if self.time_ani < 50:
@@ -799,7 +815,7 @@ def buy_item(btn_type):
             article_name = default_lang[22]
             item_id = 4
         elif btn_type == "shop_btn_bzio":
-            cost = 10000
+            cost = 5000
             article_name = default_lang[23]
             item_id = 5
         elif btn_type == "shop_btn_heat_wave":
@@ -947,8 +963,7 @@ shop_btn_l = [NewButton((87, 116), (432, 212), default_lang[36], "", "Shop"),
               NewButton((87, 222), (432, 318), default_lang[37], "shop_btn_blood_2", "Shop"),
               NewButton((87, 328), (432, 424), default_lang[38], "shop_btn_blood_3", "Shop"),
               NewButton((87, 434), (432, 530), default_lang[39], "shop_btn_blood_4", "Shop"),
-              NewButton((87, 540), (432, 636), default_lang[40], "shop_btn_blood_5", "Shop",
-                        23),
+              NewButton((87, 540), (432, 636), default_lang[40], "shop_btn_blood_5", "Shop", 23),
               NewButton((462, 116), (807, 270), default_lang[41], "", "Shop"),
               NewButton((462, 300), (807, 454), default_lang[42], "shop_btn_swatter", "Shop"),
               NewButton((462, 484), (807, 636), default_lang[43], "shop_btn_bzio", "Shop"),
