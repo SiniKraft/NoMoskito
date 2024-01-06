@@ -14,8 +14,9 @@ This game works with [python](https://www.python.org/downloads/) 3.6 + (these ve
 See how to install in the [wiki](https://github.com/SiniKraft/NoMoskito/wiki/Installation)
 If you want to test install pygame 2.0.0 +  
 Note: If you want to use a controller to play the game, connect it BEFORE launching the game !  
-You can test controllers input on Windows with the TestController.exe binary included in the NoMoskito! App folder  
-Use the code ``BZIO22`` in the shop to get 500 BZIO Coins to help you to start - available for limited time only !  
+You can test controllers input on Windows with the TestController.exe binary included in the NoMoskito! App folder,  
+or by running ``python3 -m pygame.examples.joystick``.  
+Use the code ``BZIO24`` in the shop to get 500 BZIO Coins to help you to start - available for limited time only !  
 (Code usage limited to one code per device)
 # Credits and licence
 "NoMoskito!" created by [SiniKraft](https://github.com/SiniKraft).  
